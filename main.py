@@ -11,7 +11,7 @@ def main():
 
     # create the experiments dirs
     create_dirs([config.cache_dir, config.model_dir,
-                 config.log_dir])
+                 config.log_dir , config.best_model_dir])
 
     # logging to the file and stdout
     logger = get_logger(config.log_dir, config.exp_name)

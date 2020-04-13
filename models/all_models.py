@@ -121,8 +121,8 @@ class AuxModel:
                 src_aux_logits = self.model(src_aux_imgs, 'magnification')
                 tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_logits, tar_aux_lbls)
                 src_aux_loss['magnification'] = self.class_loss_func(src_aux_logits, src_aux_lbls)
-                loss += src_aux_loss['magnification'] * 1 # To do: magnification weight
-                loss += tar_aux_loss['magnification'] * 1 # To do: main task weight
+                loss += src_aux_loss['magnification'] * 1 # todo: magnification weight
+                loss += tar_aux_loss['magnification'] * 1 # todo: main task weight
 
                 loss.backward()
                 self.optimizer.step()
@@ -197,10 +197,10 @@ class AuxModel:
 
     def load(self, path):
         checkpoint = torch.load(path)
-        self.seg_model.load_state_dict(checkpoint['model_state'])
+        self.model.load_state_dict(checkpoint['model_state'])
         self.logger.info('Loaded model from: ' + path)
 
-        if self.args.mode == 'train':
+        if self.config.mode == 'train':
             self.model.load_state_dict(checkpoint['model_state'])
             self.optimizer.load_state_dict(checkpoint['optimizer_state'])
             self.scheduler.load_state_dict(checkpoint['scheduler_state'])

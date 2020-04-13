@@ -13,7 +13,8 @@ class DefaultConfigs(object):
     log_dir = 'E:\Back_up\experiments_log\domain_adoptation\logs'
     cache_dir = 'E:\Back_up\experiments_log\domain_adoptation\cache'
     model_dir = 'E:\Back_up\experiments_log\domain_adoptation\model'
-    training_resume = None
+    best_model_dir = 'E:\Back_up\experiments_log\domain_adoptation\\best_model'
+    training_resume = 'model_002120.pth'
     training_num_print_epoch = 1
 
     #training
@@ -21,13 +22,13 @@ class DefaultConfigs(object):
 
 
     #source domain
-    src_batch_size = 32
+    src_batch_size = 64
     base_data_path = 'G:\\512allcamelyon'
     pickle_path = 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\training_cam.pickle'
     budget = 'training_cam1'
 
     #target domain
-    tar_batch_size = 32
+    tar_batch_size = 64
     base_data_path_unlabel = 'G:\\512all'
     pickle_path_unlabel= 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\training.pickle'
     budget_unlabel = 'training1'
@@ -43,8 +44,8 @@ class DefaultConfigs(object):
     pickle_path_test = 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\test.pickle'
     budget_test = 'test1'
 
-    eval_batch_size = 64
-    test_batch_size = 64
+    eval_batch_size = 128
+    test_batch_size = 128
 
 
 
