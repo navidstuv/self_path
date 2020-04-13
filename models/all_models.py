@@ -1,6 +1,7 @@
 import os
 import time
 import itertools
+
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
@@ -10,21 +11,40 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
+from torch.optim.lr_scheduler import _LRScheduler
 
 # custom modules
 from schedulers import get_scheduler
+
 from optimizers import get_optimizer
 from models.model import get_model
 from utils.metrics import AverageMeter
-from utils.utils import to_device
+from utils.utils import to_device, make_inf_dl
 
 # summary
 from tensorboardX import SummaryWriter
 
+class LinearRampdown(_LRScheduler):
+    def __init__(self, opt, rampdown_from=1000, rampdown_till=1200, last_epoch=-1):
+        self.rampdown_from = rampdown_from
+        self.rampdown_till = rampdown_till
+        super(LinearRampdown, self).__init__(opt, last_epoch)
+
+    def ramp(self, e):
+        if e > self.rampdown_from:
+            f = (e-self.rampdown_from)/(self.rampdown_till-self.rampdown_from)
+            return 1 - f
+        else:
+            return 1.0
+
+    def get_lr(self):
+        factor = self.ramp(self.last_epoch)
+        return [base_lr * factor for base_lr in self.base_lrs]
+
 class AuxModel:
 
     def __init__(self, config, logger):
-        self.congig = config
+        self.config = config
         self.logger = logger
         self.writer = SummaryWriter(config.log_dir)
         cudnn.enabled = True
@@ -36,10 +56,10 @@ class AuxModel:
 
         if config.mode == 'train':
             # set up optimizer, lr scheduler and loss functions
-            optimizer = get_optimizer(self.args.training.optimizer)
-            optimizer_params = {k: v for k, v in self.args.training.optimizer.items() if k != "name"}
-            self.optimizer = optimizer(self.model.parameters(), **optimizer_params)
-            self.scheduler = get_scheduler(self.optimizer, self.args.training.lr_scheduler)
+
+            lr = config.lr
+            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
+            self.scheduler = LinearRampdown(self.optimizer , rampdown_from=1000, rampdown_till=1200)
 
             self.class_loss_func = nn.CrossEntropyLoss()
 
@@ -65,7 +85,7 @@ class AuxModel:
         print_freq = max(num_batches // self.config.training_num_print_epoch, 1)
         i_iter = self.start_iter
         start_epoch = i_iter // num_batches
-        num_epochs = self.args.training.num_epochs
+        num_epochs = self.config.num_epochs
         best_acc = 0
         for epoch in range(start_epoch, num_epochs):
             self.model.train()
@@ -79,13 +99,12 @@ class AuxModel:
                 t = time.time()
 
                 self.optimizer.zero_grad()
-                if isinstance(src_batch, list):
-                    src = src_batch[0] # data, dataset_idx
-                else:
-                    src = src_batch
+                src = src_batch
+                tar = tar_batch
                 src = to_device(src, self.device)
-                src_imgs = src['images']
-                src_cls_lbls = src['class_labels']
+                tar = to_device(tar, self.device)
+                src_imgs, src_cls_lbls, src_aux_imgs, src_aux_lbls = src
+                tar_imgs, tar_aux_lbls = tar
 
 
                 self.optimizer.zero_grad()
@@ -96,17 +115,14 @@ class AuxModel:
 
                 tar_aux_loss = {}
                 src_aux_loss = {}
-                tar = to_device(tar_batch, self.device)
-                for task_name in self.config.self_sup_tasks:
-                    tar_imgs = tar['images']
-                    tar_aux_lbls = tar['aux_labels'][task_name]
-                    src_aux_lbls = src['aux_labels'][task_name]
-                    tar_aux_logits = self.model(tar_imgs, task_name)
-                    src_aux_logits = self.model(src_imgs, task_name)
-                    tar_aux_loss[task_name] = self.class_loss_func(tar_aux_logits, tar_aux_lbls)
-                    src_aux_loss[task_name] = self.class_loss_func(src_aux_logits, src_aux_lbls)
-                    loss += src_aux_loss[task_name] * self.config.training_loss_weight[task_name]
-                    loss += tar_aux_loss[task_name] * self.config.training_loss_weight[task_name]
+
+
+                tar_aux_logits = self.model(tar_imgs, 'magnification')
+                src_aux_logits = self.model(src_aux_imgs, 'magnification')
+                tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_logits, tar_aux_lbls)
+                src_aux_loss['magnification'] = self.class_loss_func(src_aux_logits, src_aux_lbls)
+                loss += src_aux_loss['magnification'] * 1 # To do: magnification weight
+                loss += tar_aux_loss['magnification'] * 1 # To do: main task weight
 
                 loss.backward()
                 self.optimizer.step()
@@ -118,22 +134,25 @@ class AuxModel:
 
                 i_iter += 1
 
-                if i_iter % print_freq == 0:
-                    print= ''
-                    for task_name in self.config.self_sup_tasks:
-                        print = print + 'src_aux_' + task_name +': {:.3f} | tar_aux_' + task_name +': {:.3f} |{:4.2f} s/it'
-                    print_string = 'Epoch {:>2} | iter {:>4} |' + 'src_main: {:.3f}' + print
+                # if i_iter % print_freq == 0:
+                print= ''
+                for task_name in self.config.aux_task_names:
+                    print = print + 'src_aux_' + task_name +': {:.3f} | tar_aux_' + task_name +': {:.3f}'
+                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f}| src_main: {:.3f} |' + print +  '|{:4.2f} s/it'
 
-                    src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
-                    tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
-                    self.logger.info(print_string.format(epoch, i_iter,
-                        *src_aux_loss_all,
-                        *tar_aux_loss_all,
-                        batch_time.avg))
-                    self.writer.add_scalar('losses/src_main_loss', src_main_loss, i_iter)
-                    for task_name in self.config.self_sup_tasks:
-                        self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
-                        self.writer.add_scalar('losses/tar_aux_loss_'+task_name, tar_aux_loss[task_name], i_iter)
+                src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
+                tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
+                self.logger.info(print_string.format(epoch, i_iter,
+                    losses.avg,
+                    src_main_loss.item(),
+                    *src_aux_loss_all,
+                    *tar_aux_loss_all,
+                    batch_time.avg))
+                self.writer.add_scalar('losses/all_loss', losses.avg, i_iter)
+                self.writer.add_scalar('losses/src_main_loss', src_main_loss, i_iter)
+                for task_name in self.config.aux_task_names:
+                    self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
+                    self.writer.add_scalar('losses/tar_aux_loss_'+task_name, tar_aux_loss[task_name], i_iter)
 
             # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
             # del src_aux_logits, src_class_logits
@@ -200,21 +219,18 @@ class AuxModel:
         self.model.eval()
         with torch.no_grad():
             for cur_it in tt:
+
                 data = next(val_loader_iterator)
-                if isinstance(data, list):
-                    data = data[0]
-                # Get the inputs
                 data = to_device(data, self.device)
-                imgs = data['images']
-                cls_lbls = data['class_labels']
-                aux_lbls = data['aux_labels']
+                imgs, cls_lbls, _, _ = data
+                # Get the inputs
 
                 logits = self.model(imgs, 'main_task')
 
                 _, cls_pred = logits.max(dim=1)
                 # _, aux_pred = aux_logits.max(dim=1)
 
-                class_correct += torch.sum(cls_pred == cls_lbls.data)
+                class_correct += torch.sum(cls_pred == cls_lbls)
                 # aux_correct += torch.sum(aux_pred == aux_lbls.data)
                 total += imgs.size(0)
 
