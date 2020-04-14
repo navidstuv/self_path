@@ -18,7 +18,7 @@ from schedulers import get_scheduler
 
 from optimizers import get_optimizer
 from models.model import get_model
-from utils.metrics import AverageMeter
+from utils.metrics import AverageMeter, accuracy
 from utils.utils import to_device, make_inf_dl
 
 # summary
@@ -91,6 +91,7 @@ class AuxModel:
             self.model.train()
             batch_time = AverageMeter()
             losses = AverageMeter()
+            top1 = AverageMeter()
 
             # adjust learning rate
             self.scheduler.step()
@@ -124,6 +125,9 @@ class AuxModel:
                 loss += src_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: magnification weight
                 loss += tar_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: main task weight
 
+                precision1_train, precision2_train = accuracy(src_main_logits, src_cls_lbls, topk=(1, 2))
+                top1.update(precision1_train[0], src_imgs.size(0))
+
                 loss.backward()
                 self.optimizer.step()
 
@@ -138,12 +142,13 @@ class AuxModel:
                 print= ''
                 for task_name in self.config.aux_task_names:
                     print = print + 'src_aux_' + task_name +': {:.3f} | tar_aux_' + task_name +': {:.3f}'
-                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f}| src_main: {:.3f} |' + print +  '|{:4.2f} s/it'
+                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} acc: {:.3f}| src_main: {:.3f} |' + print +  '|{:4.2f} s/it'
 
                 src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
                 tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
                 self.logger.info(print_string.format(epoch, i_iter,
                     losses.avg,
+                    top1.avg,
                     src_main_loss.item(),
                     *src_aux_loss_all,
                     *tar_aux_loss_all,
