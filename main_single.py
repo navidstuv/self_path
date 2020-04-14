@@ -1,10 +1,10 @@
 import random
 from utils.dirs import create_dirs
-from configs.configs import config
+from configs.configs_single import config
 from utils.utils import  get_logger
 from models.model import get_model
 
-from models.all_models import AuxModel
+from models.base_model import AuxModel
 from data.data_loader import get_loaders
 
 def main():

@@ -74,7 +74,7 @@ class AuxModel:
         elif config.mode == 'val':
             self.load(os.path.join(config.model_dir, config.validation_model))
         else:
-            self.load(os.path.join(config.best_model_dir, config.testing_model))
+            self.load(os.path.join(config.model_dir, config.testing_model))
 
     def entropy_loss(self, x):
         return torch.sum(-F.softmax(x, 1) * F.log_softmax(x, 1), 1).mean()
@@ -95,16 +95,13 @@ class AuxModel:
             # adjust learning rate
             self.scheduler.step()
 
-            for it, (src_batch, tar_batch) in enumerate(zip(src_loader, itertools.cycle(tar_loader))):
+            for it, src_batch in enumerate(src_loader):
                 t = time.time()
 
                 self.optimizer.zero_grad()
                 src = src_batch
-                tar = tar_batch
                 src = to_device(src, self.device)
-                tar = to_device(tar, self.device)
                 src_imgs, src_cls_lbls, src_aux_imgs, src_aux_lbls = src
-                tar_imgs, tar_aux_lbls = tar
 
 
                 self.optimizer.zero_grad()
@@ -113,16 +110,6 @@ class AuxModel:
                 src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
                 loss = src_main_loss* self.config.loss_weight['main_task']
 
-                tar_aux_loss = {}
-                src_aux_loss = {}
-
-
-                tar_aux_logits = self.model(tar_imgs, 'magnification')
-                src_aux_logits = self.model(src_aux_imgs, 'magnification')
-                tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_logits, tar_aux_lbls)
-                src_aux_loss['magnification'] = self.class_loss_func(src_aux_logits, src_aux_lbls)
-                loss += src_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: magnification weight
-                loss += tar_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: main task weight
 
                 loss.backward()
                 self.optimizer.step()
@@ -134,26 +121,15 @@ class AuxModel:
 
                 i_iter += 1
 
-                # if i_iter % print_freq == 0:
-                print= ''
-                for task_name in self.config.aux_task_names:
-                    print = print + 'src_aux_' + task_name +': {:.3f} | tar_aux_' + task_name +': {:.3f}'
-                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f}| src_main: {:.3f} |' + print +  '|{:4.2f} s/it'
 
-                src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
-                tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
+                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f}| src_main: {:.3f} |' +  '|{:4.2f} s/it'
+
                 self.logger.info(print_string.format(epoch, i_iter,
                     losses.avg,
                     src_main_loss.item(),
-                    *src_aux_loss_all,
-                    *tar_aux_loss_all,
                     batch_time.avg))
                 self.writer.add_scalar('losses/all_loss', losses.avg, i_iter)
                 self.writer.add_scalar('losses/src_main_loss', src_main_loss, i_iter)
-                for task_name in self.config.aux_task_names:
-                    self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
-                    self.writer.add_scalar('losses/tar_aux_loss_'+task_name, tar_aux_loss[task_name], i_iter)
-
             # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
             # del src_aux_logits, src_class_logits
             # del tar_aux_logits, tar_class_logits
@@ -245,8 +221,8 @@ class AuxModel:
             tt.close()
         if self.config.save_output==True:
             soft_labels = soft_labels[1:, :]
-            np.save('pred_cam1234.npy', soft_labels)
-            np.save('true_cam1234.npy', true_labels)
+            np.save('pred_cam1.npy', soft_labels)
+            np.save('true_cam1.npy', true_labels)
 
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total

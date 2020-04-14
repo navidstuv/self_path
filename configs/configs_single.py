@@ -6,16 +6,15 @@ class DefaultConfigs(object):
     encoder_name = 'resnet50'
     pretrained = False
     exp_name = ' cam-oscc'
-    task_names = ['main_task', 'magnification']
-    aux_task_names = ['magnification']
-    tasks = {'magnification': {'type': 'classification', 'n_classes': 3}, 'main_task': {'type': 'classification', 'n_classes': 2} }
-    loss_weight = {'magnification': 0.2, 'main_task': 1}
+    task_names = ['main_task']
+    tasks = {'main_task': {'type': 'classification', 'n_classes': 2} }
+    loss_weight = {'main_task': 1}
 
-    log_dir = 'E:\Back_up\experiments_log\domain_adoptation\logs'
-    cache_dir = 'E:\Back_up\experiments_log\domain_adoptation\cache'
-    model_dir = 'E:\Back_up\experiments_log\domain_adoptation\model'
-    best_model_dir = 'E:\Back_up\experiments_log\domain_adoptation\\best_model'
-    training_resume = 'model_003181.pth'
+    log_dir = 'E:\Back_up\experiments_log\domain_adoptation\single_task\\logs'
+    cache_dir = 'E:\Back_up\experiments_log\domain_adoptation\single_task\\cache'
+    model_dir = 'E:\Back_up\experiments_log\domain_adoptation\single_task\\model'
+    best_model_dir = 'E:\Back_up\experiments_log\domain_adoptation\\single_task\\best_model'
+    training_resume = None
     training_num_print_epoch = 1
 
     #training
@@ -44,15 +43,15 @@ class DefaultConfigs(object):
     #test
     pickle_path_test = 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\test.pickle'
     budget_test = 'test1'
-    testing_model ='model_020142.pth'
-
+    testing_model ='model_021200.pth'
     save_output = True
+
     eval_batch_size = 128
     test_batch_size = 128
 
 
 
-    random_seed = 22
+    random_seed = 44
     num_epochs = 100
 
     optimizer = 'sgd'
