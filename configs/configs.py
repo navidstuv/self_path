@@ -15,7 +15,7 @@ class DefaultConfigs(object):
     cache_dir = 'E:\Back_up\experiments_log\domain_adoptation\cache'
     model_dir = 'E:\Back_up\experiments_log\domain_adoptation\model'
     best_model_dir = 'E:\Back_up\experiments_log\domain_adoptation\\best_model'
-    training_resume = 'model_024382.pth'
+    training_resume = 'model_029683.pth'
     training_num_print_epoch = 1
 
     #training
@@ -44,7 +44,7 @@ class DefaultConfigs(object):
     #test
     pickle_path_test = 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\test.pickle'
     budget_test = 'test1'
-    testing_model ='model_020142.pth'
+    testing_model ='model_028623.pth'
 
     save_output = False
     eval_batch_size = 128
