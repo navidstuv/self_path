@@ -6,6 +6,7 @@ from torch import nn
 import torchvision.models as models
 import torch
 from torch.nn import BatchNorm2d
+from torch.nn.utils import weight_norm
 
 
 def get_resnet(encoder_name, pretrained=True):
@@ -30,6 +31,59 @@ def get_resnet(encoder_name, pretrained=True):
     model = torch.nn.Sequential(*children)
     return model, latent_dim
 
+class Disc128(nn.Module):
+    """docstring for Discriminator"""
+
+    def __init__(self, num_classes):
+        super(Disc128, self).__init__()
+        self.net = nn.Sequential(
+            nn.Dropout(.2),
+            weight_norm(nn.Conv2d(3, 96, 3, stride=1, padding=1)),
+            nn.LeakyReLU(.2),
+            weight_norm(nn.Conv2d(96, 96, 3, stride=1, padding=1)),
+            nn.LeakyReLU(.2),
+            weight_norm(nn.Conv2d(96, 96, 3, stride=2, padding=1)),
+            nn.LeakyReLU(.2),
+
+            nn.Dropout(.5),
+            weight_norm(nn.Conv2d(96, 128, 3, stride=1, padding=1)),
+            nn.LeakyReLU(.2),
+            weight_norm(nn.Conv2d(128, 128, 3, stride=1, padding=1)),
+            nn.LeakyReLU(.2),
+            weight_norm(nn.Conv2d(128, 128, 3, stride=2, padding=1)),
+            nn.LeakyReLU(.2),
+
+            nn.Dropout(.5),
+            weight_norm(nn.Conv2d(128, 192, 3, stride=1, padding=1)),
+            nn.LeakyReLU(.2),
+            weight_norm(nn.Conv2d(192, 192, 3, stride=1, padding=1)),
+            nn.LeakyReLU(.2),
+            weight_norm(nn.Conv2d(192, 192, 3, stride=2, padding=1)),
+            nn.LeakyReLU(.2),
+
+            nn.Dropout(.5),
+            weight_norm(nn.Conv2d(192, 192, 3, stride=1, padding=0)),
+            nn.LeakyReLU(.2),
+            weight_norm(nn.Conv2d(192, 192, 1, stride=1, padding=0)),
+            nn.LeakyReLU(.2),
+            weight_norm(nn.Conv2d(192, 192, 1, stride=1, padding=0)),
+            nn.LeakyReLU(.2),
+
+            # nn.AvgPool2d(6,stride=1),
+            # nn.AdaptiveAvgPool2d(1),
+            nn.AdaptiveMaxPool2d(1),
+            Flatten()
+        )
+
+        self.fc = weight_norm(nn.Linear(192, num_classes))
+
+    def forward(self, x, req_inter_layer=False):
+        inter_layer = self.net(x)
+        logits = self.fc(inter_layer)
+        if req_inter_layer:
+            return logits, inter_layer
+        else:
+            return logits
 
 class ResNet(nn.Module):
 
