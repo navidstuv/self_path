@@ -21,20 +21,43 @@ def get_resnet(encoder_name, pretrained=True):
     if encoder_name == "resnet18":
         model = models.resnet18(pretrained=pretrained)
         latent_dim = 512
-    else:
+        children = (
+                [BatchNorm2d(3)]
+                + list(model.children())[:-2])
+        model = torch.nn.Sequential(*children)
+    elif encoder_name == "resner50":
         model = models.resnet50(pretrained=pretrained)
         latent_dim = 2048
+        children = (
+                [BatchNorm2d(3)]
+                + list(model.children())[:-2])
+        model = torch.nn.Sequential(*children)
+    elif encoder_name == "resnet101":
+        model = models.resnet50(pretrained=pretrained)
+        latent_dim = 2048
+        children = (
+                [BatchNorm2d(3)]
+                + list(model.children())[:-2])
+        model = torch.nn.Sequential(*children)
 
-    children = (
-        [BatchNorm2d(3)]
-        + list(model.children())[:-2])
-    model = torch.nn.Sequential(*children)
+    elif encoder_name =="Disc128":
+        model = Disc128()
+        latent_dim = 192
     return model, latent_dim
+
+
+class Flatten(nn.Module):
+
+    def __init__(self):
+        super(Flatten, self).__init__()
+
+    def forward(self, x):
+        return x.view(len(x), -1)
 
 class Disc128(nn.Module):
     """docstring for Discriminator"""
 
-    def __init__(self, num_classes):
+    def __init__(self):
         super(Disc128, self).__init__()
         self.net = nn.Sequential(
             nn.Dropout(.2),
@@ -75,15 +98,48 @@ class Disc128(nn.Module):
             Flatten()
         )
 
-        self.fc = weight_norm(nn.Linear(192, num_classes))
-
-    def forward(self, x, req_inter_layer=False):
+    def forward(self, x):
         inter_layer = self.net(x)
-        logits = self.fc(inter_layer)
-        if req_inter_layer:
-            return logits, inter_layer
-        else:
-            return logits
+        return inter_layer
+
+class Reshape(nn.Module):
+
+    def __init__(self, shape):
+        super(Reshape, self).__init__()
+        self.req_shape = (-1,)+shape
+
+    def forward(self, x):
+        return x.view(self.req_shape)
+class Gen128(nn.Module):
+    """docstring for Generator"""
+
+    def __init__(self, latent_dim):
+        super(Gen128, self).__init__()
+        self.latent_dim = latent_dim
+        self.net = nn.Sequential(
+            nn.Linear(self.latent_dim, 512*4*4),
+            nn.BatchNorm1d(512*4*4),
+            nn.ReLU(),
+            Reshape((512, 4, 4)),
+            nn.ConvTranspose2d(512, 256, 5, stride=2, padding=2, output_padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.ConvTranspose2d(256, 128, 5, stride=2, padding=2, output_padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.ConvTranspose2d(128, 128, 5, stride=2, padding=2, output_padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.ConvTranspose2d(128, 128, 5, stride=2, padding=2, output_padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            weight_norm(nn.ConvTranspose2d(128, 3, 5, stride=2, padding=2, output_padding=1)),
+            nn.Tanh(),
+        )
+
+    def forward(self, x):
+        return self.net(x)
+
 
 class ResNet(nn.Module):
 

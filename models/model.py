@@ -2,8 +2,8 @@
 Multi-Task Histology model
 """
 import torch.nn as nn
-from .encoder import get_resnet
-from .decoders import  UnetDecoder, Classifier
+from .encoder import get_resnet, Gen128
+from .decoders import  UnetDecoder, Classifier, Disc128_classifier
 from torch import optim
 
 
@@ -18,7 +18,7 @@ class MultiTaskCNN(nn.Module):
         self.base, self.latent_dim  = get_resnet(encoder_name, pretrained=pretrained)
         self.decoders = nn.ModuleDict({})
 
-    def forward(self, x, task_name):
+    def forward(self, x, task_name, req_inter_layer=False):
         """
         Forward pass through the model
         :param x: input features
@@ -29,10 +29,14 @@ class MultiTaskCNN(nn.Module):
 
         if isinstance(self.decoders[task_name], UnetDecoder):
             out = self.decoders[task_name](x, layer0, layer1, layer2, layer3, layer4)
-        if isinstance(self.decoders[task_name], Classifier):
-            out = self.decoders[task_name](x)
-        return out
-
+            return out
+        if isinstance(self.decoders[task_name], Disc128_classifier):
+            if req_inter_layer==True:
+                out, inter_layer = self.decoders[task_name](x, req_inter_layer)
+                return out, inter_layer
+            else:
+                out = self.decoders[task_name](x, req_inter_layer)
+                return out
 
 
 
@@ -42,22 +46,24 @@ def get_model(config):
     :param config:
     :return:
     """
-    model = MultiTaskCNN(encoder_name=config.encoder_name, pretrained=config.pretrained)
-    latent_dim = model.latent_dim
+    d_model = MultiTaskCNN(encoder_name=config.encoder_name, pretrained=config.pretrained).apply(init_normal)
+    g_model = Gen128(latent_dim=100).apply(init_normal)
+    latent_dim = d_model.latent_dim
     for task_name in config.task_names:
         task_dictionary = config.tasks[task_name]
         task_type = task_dictionary['type']
         n_classes = task_dictionary['n_classes']
 
         if task_type == 'segmentation':
-            model.decoders.update({task_name:UnetDecoder(n_classes,
-                                            model.base.multiple)})
+            d_model.decoders.update({task_name:UnetDecoder(n_classes,
+                                                           d_model.base.multiple)})
         if task_type == 'classification':
-            model.decoders.update({task_name:
-                                  Classifier(input_dim=latent_dim, n_classes=n_classes)})
+            d_model.decoders.update({task_name:
+                                       Disc128_classifier(input_dim=latent_dim, n_classes=n_classes)})
     # Place model on cuda
-    model = model.cuda()
-    return model
+    d_model = d_model.cuda()
+    g_model = g_model.cuda()
+    return d_model, g_model
 
 def get_optimizer(model, optimizer_type, lr, weight_decay):
     """
@@ -78,3 +84,19 @@ def get_optimizer(model, optimizer_type, lr, weight_decay):
                           weight_decay=weight_decay)
     else:
         raise Exception('Wrong optimizer type {}'.format(optimizer_type))
+
+
+def init_normal(m):
+    if type(m) == nn.Linear:
+        nn.init.normal_(m.weight, mean=0.0, std=.05)
+        nn.init.constant_(m.bias, 0.0)
+
+    if type(m) == nn.ConvTranspose2d:
+        nn.init.normal_(m.weight, mean=0.0, std=.05)
+
+    if type(m) == nn.Conv2d:
+        nn.init.normal_(m.weight, mean=0.0, std=.05)
+        nn.init.constant_(m.bias, 0.0)
+
+    if hasattr(m, 'weight_g'):
+        nn.init.constant_(m.weight_g,1)
