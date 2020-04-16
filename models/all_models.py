@@ -118,9 +118,9 @@ class AuxModel:
                 src_tar_img = src_tar_imgs[:self.config.src_batch_size,:,:,:]
 
                 src_tar_lbls = torch.cat((torch.zeros((self.config.src_batch_size)), torch.ones((self.config.src_batch_size))), dim=0)
-                src_tar_lbls = src_tar_lbls[r,:]
-                src_tar_lbls = src_tar_lbls[:self.config.src_batch_size, :]
-                src_tar_lbls = to_device(src_tar_lbls, self.device)
+                src_tar_lbls = src_tar_lbls[r]
+                src_tar_lbls = src_tar_lbls[:self.config.src_batch_size]
+                src_tar_lbls = to_device(src_tar_lbls.long(), self.device)
 
 
 
@@ -152,7 +152,6 @@ class AuxModel:
                 tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_logits, tar_aux_lbls)
                 src_aux_loss['magnification'] = self.class_loss_func(src_aux_logits, src_aux_lbls)
                 tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tar_lbls)
-                src_aux_loss['domain_classifier'] = 1
 
                 loss_disc += src_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: magnification weight
                 loss_disc += tar_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: main task weight
@@ -193,7 +192,10 @@ class AuxModel:
                 # if i_iter % print_freq == 0:
                 print= ''
                 for task_name in self.config.aux_task_names:
-                    print = print + 'src_aux_' + task_name +': {:.3f} | tar_aux_' + task_name +': {:.3f}'
+                    if task_name=='domain_classifier':
+                        print = print +' tar_aux_' + task_name +': {:.3f}'
+                    else:
+                        print = print + 'src_aux_' + task_name + ': {:.3f} | tar_aux_' + task_name + ': {:.3f}'
                 print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} |  acc: {:.3f}| src_main: {:.3f} |loss_g:{:.3f}|' + print +  '|{:4.2f} s/it'
 
                 src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
@@ -209,8 +211,12 @@ class AuxModel:
                 self.writer.add_scalar('losses/all_loss', losses.avg, i_iter)
                 self.writer.add_scalar('losses/src_main_loss', loss_lab, i_iter)
                 for task_name in self.config.aux_task_names:
-                    self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
-                    self.writer.add_scalar('losses/tar_aux_loss_'+task_name, tar_aux_loss[task_name], i_iter)
+                    if task_name=='domain_classifier':
+                        # self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
+                        self.writer.add_scalar('losses/tar_aux_loss_'+task_name, tar_aux_loss[task_name], i_iter)
+                    else:
+                        self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
+                        self.writer.add_scalar('losses/tar_aux_loss_'+task_name, tar_aux_loss[task_name], i_iter)
 
             # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
             # del src_aux_logits, src_class_logits
