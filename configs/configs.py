@@ -16,7 +16,7 @@ class DefaultConfigs(object):
     cache_dir = 'E:\Back_up\experiments_log\domain_adoptation\GAN\cache'
     model_dir = 'E:\Back_up\experiments_log\domain_adoptation\\GAN\model'
     best_model_dir = 'E:\Back_up\experiments_log\domain_adoptation\GAN\\best_model'
-    training_resume = 'model_004241.pth'
+    training_resume = 'model_033922.pth'
     training_num_print_epoch = 1
 
 
@@ -43,9 +43,9 @@ class DefaultConfigs(object):
     #test
     pickle_path_test = 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\test.pickle'
     budget_test = 'test1'
-    testing_model ='model_002120.pth'
+    testing_model ='model_033922.pth'
 
-    save_output = False
+    save_output = True
     eval_batch_size = 128
     test_batch_size = 128
 
@@ -62,10 +62,5 @@ class DefaultConfigs(object):
 
     lr_scheduler= {'name': 'step', 'step_size': 24}
 
-
-
-    validation_model=''
-
-    testing_model=''
-    gpus = '0'
+    gpus = '1'
 config = DefaultConfigs()
