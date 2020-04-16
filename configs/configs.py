@@ -7,16 +7,16 @@ class DefaultConfigs(object):
     pretrained = False
     gan_latent_dim = 100
     exp_name = ' cam-oscc'
-    task_names = ['main_task', 'magnification']
-    aux_task_names = ['magnification']
-    tasks = {'magnification': {'type': 'classification', 'n_classes': 3}, 'main_task': {'type': 'classification', 'n_classes': 2} }
-    loss_weight = {'magnification': 0.2, 'main_task': 1}
+    task_names = ['main_task', 'magnification','domain_classifier']
+    aux_task_names = ['magnification', 'domain_classifier']
+    tasks = {'magnification': {'type': 'classification', 'n_classes': 3}, 'main_task': {'type': 'classification', 'n_classes': 2}, 'domain_classifier': {'type': 'classification', 'n_classes': 2} }
+    loss_weight = {'magnification': 0.2, 'main_task': 1, 'domain_classifier':0.2}
 
-    log_dir = 'E:\Back_up\experiments_log\domain_adoptation\GAN\logs'
-    cache_dir = 'E:\Back_up\experiments_log\domain_adoptation\GAN\cache'
-    model_dir = 'E:\Back_up\experiments_log\domain_adoptation\\GAN\model'
-    best_model_dir = 'E:\Back_up\experiments_log\domain_adoptation\GAN\\best_model'
-    training_resume = 'model_004241.pth'
+    log_dir = 'E:\Back_up\experiments_log\domain_adoptation\GAN_da_classifier\logs'
+    cache_dir = 'E:\Back_up\experiments_log\domain_adoptation\GAN_da_classifier\cache'
+    model_dir = 'E:\Back_up\experiments_log\domain_adoptation\\GAN_da_classifierN\model'
+    best_model_dir = 'E:\Back_up\experiments_log\domain_adoptation\GAN_da_classifier\\best_model'
+    training_resume = ''
     training_num_print_epoch = 1
 
 
@@ -67,5 +67,5 @@ class DefaultConfigs(object):
     validation_model=''
 
     testing_model=''
-    gpus = '0'
+    gpus = '1'
 config = DefaultConfigs()

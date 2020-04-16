@@ -112,6 +112,17 @@ class AuxModel:
                 src_imgs, src_cls_lbls, src_aux_imgs, src_aux_lbls = src
                 tar_imgs, tar_aux_lbls = tar
 
+                r = torch.randperm(2*self.config.src_batch_size)
+                src_tar_imgs = torch.cat((src_imgs, tar_imgs), dim=0)
+                src_tar_imgs = src_tar_imgs[r,:,:,:]
+                src_tar_img = src_tar_imgs[:self.config.src_batch_size,:,:,:]
+
+                src_tal_lbls = torch.cat((torch.zeros((self.config.src_batch_size,1)), torch.ones((self.config.src_batch_size,1))), dim=0)
+                src_tal_lbls = src_tal_lbls[r,:]
+                src_tal_lbls = src_tal_lbls[:self.config.src_batch_size, :]
+
+
+
                 z = torch.randn(self.config.src_batch_size, self.config.gan_latent_dim)
                 z = z.cuda()
 
@@ -133,12 +144,19 @@ class AuxModel:
 
                 tar_aux_loss = {}
                 src_aux_loss = {}
+
+                src_tar_logits = self.d_model(src_tar_img, 'domain_classifier')
                 tar_aux_logits = self.d_model(tar_imgs, 'magnification')
                 src_aux_logits = self.d_model(src_aux_imgs, 'magnification')
                 tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_logits, tar_aux_lbls)
                 src_aux_loss['magnification'] = self.class_loss_func(src_aux_logits, src_aux_lbls)
+                tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tal_lbls)
+                src_aux_loss['domain_classifier'] = 1
+
                 loss_disc += src_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: magnification weight
                 loss_disc += tar_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: main task weight
+                loss_disc += tar_aux_loss['domain_classifier'] * self.config.loss_weight['domain_classifier']
+
                 loss_disc.backward()
                 self.d_optimizer.step()
 
