@@ -1,6 +1,9 @@
+from configs.configs import config
+import os
 import random
 from utils.dirs import create_dirs
-from configs.configs import config
+os.environ["CUDA_VISIBLE_DEVICES"] = config.gpus
+
 from utils.utils import  get_logger
 from models.model import get_model
 

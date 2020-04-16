@@ -16,7 +16,7 @@ class DefaultConfigs(object):
     cache_dir = 'E:\Back_up\experiments_log\domain_adoptation\GAN\cache'
     model_dir = 'E:\Back_up\experiments_log\domain_adoptation\\GAN\model'
     best_model_dir = 'E:\Back_up\experiments_log\domain_adoptation\GAN\\best_model'
-    training_resume = ''
+    training_resume = 'model_004241.pth'
     training_num_print_epoch = 1
 
 
@@ -35,14 +35,15 @@ class DefaultConfigs(object):
 
 
     #validation
-    pickle_path_valid = 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\validation_cam.pickle'
-    budget_valid = 'validation_cam1'
+    pickle_path_valid = 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\validation.pickle'
+    budget_valid = 'validation1'
+    validation_model = 'model_002120.pth'
 
 
     #test
     pickle_path_test = 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\test.pickle'
     budget_test = 'test1'
-    testing_model ='model_020142.pth'
+    testing_model ='model_002120.pth'
 
     save_output = False
     eval_batch_size = 128
@@ -59,12 +60,12 @@ class DefaultConfigs(object):
     momentum= 0.9
     nesterov= True
 
-lr_scheduler= {'name': 'step', 'step_size': 24}
+    lr_scheduler= {'name': 'step', 'step_size': 24}
 
 
 
-validation_model=''
+    validation_model=''
 
-testing_model=''
-
+    testing_model=''
+    gpus = '0'
 config = DefaultConfigs()

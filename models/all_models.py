@@ -80,7 +80,7 @@ class AuxModel:
         elif config.mode == 'val':
             self.load(os.path.join(config.model_dir, config.validation_model))
         else:
-            self.load(os.path.join(config.best_model_dir, config.testing_model))
+            self.load(os.path.join(config.model_dir, config.testing_model))
 
     def entropy_loss(self, x):
         return torch.sum(-F.softmax(x, 1) * F.log_softmax(x, 1), 1).mean()
@@ -205,11 +205,11 @@ class AuxModel:
                 class_acc = self.test(val_loader)
                 # self.writer.add_scalar('val/aux_acc', class_acc, i_iter)
                 self.writer.add_scalar('val/class_acc', class_acc, i_iter)
-                if class_acc > best_acc:
-                    best_acc = class_acc
+                if class_acc > self.best_acc:
+                    self.best_acc = class_acc
                     self.save(self.config.best_model_dir, i_iter)
                     # todo copy current model to best model
-                self.logger.info('Best testing accuracy: {:.2f} %'.format(best_acc))
+                self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
 
             if test_loader is not None:
                 self.logger.info('testing...')
@@ -219,9 +219,9 @@ class AuxModel:
                 if class_acc > self.best_acc:
                     self.best_acc = class_acc
                     # todo copy current model to best model
-                self.logger.info('Best testing accuracy: {:.2f} %'.format(best_acc))
+                self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
 
-        self.logger.info('Best testing accuracy: {:.2f} %'.format(best_acc))
+        self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
         self.logger.info('Finished Training.')
 
     def save(self, path, i_iter):
@@ -266,7 +266,7 @@ class AuxModel:
         soft_labels = np.zeros((1, 2))
         true_labels = []
 
-        self.model.eval()
+        self.d_model.eval()
         with torch.no_grad():
             for cur_it in tt:
 
@@ -275,7 +275,7 @@ class AuxModel:
                 imgs, cls_lbls, _, _ = data
                 # Get the inputs
 
-                logits = self.model(imgs, 'main_task')
+                logits = self.d_model(imgs, 'main_task')
 
                 if self.config.save_output==True:
                     smax = nn.Softmax(dim=1)
