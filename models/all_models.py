@@ -112,15 +112,15 @@ class AuxModel:
                 src_imgs, src_cls_lbls, src_aux_imgs, src_aux_lbls = src
                 tar_imgs, tar_aux_lbls = tar
 
-                r = torch.randperm(2*self.config.src_batch_size)
+                r = torch.randperm(src_imgs.size()[0]+tar_imgs.size()[0])
                 src_tar_imgs = torch.cat((src_imgs, tar_imgs), dim=0)
                 src_tar_imgs = src_tar_imgs[r,:,:,:]
-                src_tar_img = src_tar_imgs[:self.config.src_batch_size,:,:,:]
+                src_tar_img = src_tar_imgs[:src_imgs.size()[0],:,:,:]
 
-                src_tar_lbls = torch.cat((torch.zeros((self.config.src_batch_size)), torch.ones((self.config.src_batch_size))), dim=0)
+                src_tar_lbls = torch.cat((torch.zeros((src_imgs.size()[0])), torch.ones((tar_imgs.size()[0]))), dim=0)
                 src_tar_lbls = src_tar_lbls[r]
-                src_tar_lbls = src_tar_lbls[:self.config.src_batch_size]
-                src_tar_lbls = to_device(src_tar_lbls.long(), self.device)
+                src_tar_lbls = src_tar_lbls[:src_imgs.size()[0]]
+                src_tar_lbls = src_tar_lbls.long().cuda()
 
 
 
