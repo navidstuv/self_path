@@ -117,9 +117,10 @@ class AuxModel:
                 src_tar_imgs = src_tar_imgs[r,:,:,:]
                 src_tar_img = src_tar_imgs[:self.config.src_batch_size,:,:,:]
 
-                src_tal_lbls = torch.cat((torch.zeros((self.config.src_batch_size,1)), torch.ones((self.config.src_batch_size,1))), dim=0)
-                src_tal_lbls = src_tal_lbls[r,:]
-                src_tal_lbls = src_tal_lbls[:self.config.src_batch_size, :]
+                src_tar_lbls = torch.cat((torch.zeros((self.config.src_batch_size)), torch.ones((self.config.src_batch_size))), dim=0)
+                src_tar_lbls = src_tar_lbls[r,:]
+                src_tar_lbls = src_tar_lbls[:self.config.src_batch_size, :]
+                src_tar_lbls = to_device(src_tar_lbls, self.device)
 
 
 
@@ -150,7 +151,7 @@ class AuxModel:
                 src_aux_logits = self.d_model(src_aux_imgs, 'magnification')
                 tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_logits, tar_aux_lbls)
                 src_aux_loss['magnification'] = self.class_loss_func(src_aux_logits, src_aux_lbls)
-                tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tal_lbls)
+                tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tar_lbls)
                 src_aux_loss['domain_classifier'] = 1
 
                 loss_disc += src_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: magnification weight
