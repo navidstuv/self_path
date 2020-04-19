@@ -54,11 +54,8 @@ class DefaultConfigs(object):
     random_seed = 22
     num_epochs = 100
 
-    optimizer = 'sgd'
     lr =  0.001
-    weight_decay= 0.0005
-    momentum= 0.9
-    nesterov= True
+
 
 
 
