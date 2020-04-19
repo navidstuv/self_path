@@ -11,25 +11,21 @@ class DefaultConfigs(object):
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3}, 'main_task': {'type': 'classification', 'n_classes': 2} }
     loss_weight = {'magnification': 0.2, 'main_task': 1}
 
-    log_dir = 'E:\Back_up\experiments_log\domain_adoptation\logs'
-    cache_dir = 'E:\Back_up\experiments_log\domain_adoptation\cache'
-    model_dir = 'E:\Back_up\experiments_log\domain_adoptation\model'
-    best_model_dir = 'E:\Back_up\experiments_log\domain_adoptation\\best_model'
-    training_resume = 'model_029683.pth'
-    training_num_print_epoch = 1
-
-    #training
-    train_batch_size = 32
-
+    log_dir = 'E:\Back_up\experiments_log\domain_adoptation\main_task_mag\logs'
+    cache_dir = 'E:\Back_up\experiments_log\domain_adoptation\main_task_mag\cache'
+    model_dir = 'E:\Back_up\experiments_log\domain_adoptation\main_task_mag\model'
+    best_model_dir = 'E:\Back_up\experiments_log\domain_adoptation\main_task_mag\\best_model'
+    training_resume = ''
+    training_num_print_epoch = 20
 
     #source domain
-    src_batch_size = 64
+    src_batch_size = 32
     base_data_path = 'G:\\512allcamelyon'
     pickle_path = 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\training_cam.pickle'
     budget = 'training_cam1'
 
     #target domain
-    tar_batch_size = 64
+    tar_batch_size = 32
     base_data_path_unlabel = 'G:\\512all'
     pickle_path_unlabel= 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\training.pickle'
     budget_unlabel = 'training1'

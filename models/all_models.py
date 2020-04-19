@@ -53,7 +53,7 @@ class AuxModel:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = get_model(config)
         self.model = self.model.to(self.device)
-
+        self.best_acc = 0
         if config.mode == 'train':
             # set up optimizer, lr scheduler and loss functions
 
@@ -86,15 +86,11 @@ class AuxModel:
         i_iter = self.start_iter
         start_epoch = i_iter // num_batches
         num_epochs = self.config.num_epochs
-        best_acc = 0
         for epoch in range(start_epoch, num_epochs):
             self.model.train()
             batch_time = AverageMeter()
             losses = AverageMeter()
             top1 = AverageMeter()
-
-            # adjust learning rate
-            self.scheduler.step()
 
             for it, (src_batch, tar_batch) in enumerate(zip(src_loader, itertools.cycle(tar_loader))):
                 t = time.time()
@@ -138,26 +134,27 @@ class AuxModel:
 
                 i_iter += 1
 
-                # if i_iter % print_freq == 0:
-                print= ''
-                for task_name in self.config.aux_task_names:
-                    print = print + 'src_aux_' + task_name +': {:.3f} | tar_aux_' + task_name +': {:.3f}'
-                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} acc: {:.3f}| src_main: {:.3f} |' + print +  '|{:4.2f} s/it'
+                if i_iter % print_freq == 0:
+                    print= ''
+                    for task_name in self.config.aux_task_names:
+                        print = print + 'src_aux_' + task_name +': {:.3f} | tar_aux_' + task_name +': {:.3f}'
+                    print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} acc: {:.3f}| src_main: {:.3f} |' + print +  '|{:4.2f} s/it'
 
-                src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
-                tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
-                self.logger.info(print_string.format(epoch, i_iter,
-                    losses.avg,
-                    top1.avg,
-                    src_main_loss.item(),
-                    *src_aux_loss_all,
-                    *tar_aux_loss_all,
-                    batch_time.avg))
-                self.writer.add_scalar('losses/all_loss', losses.avg, i_iter)
-                self.writer.add_scalar('losses/src_main_loss', src_main_loss, i_iter)
-                for task_name in self.config.aux_task_names:
-                    self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
-                    self.writer.add_scalar('losses/tar_aux_loss_'+task_name, tar_aux_loss[task_name], i_iter)
+                    src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
+                    tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
+                    self.logger.info(print_string.format(epoch, i_iter,
+                        losses.avg,
+                        top1.avg,
+                        src_main_loss.item(),
+                        *src_aux_loss_all,
+                        *tar_aux_loss_all,
+                        batch_time.avg))
+                    self.writer.add_scalar('losses/all_loss', losses.avg, i_iter)
+                    self.writer.add_scalar('losses/src_main_loss', src_main_loss, i_iter)
+                    for task_name in self.config.aux_task_names:
+                        self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
+                        self.writer.add_scalar('losses/tar_aux_loss_'+task_name, tar_aux_loss[task_name], i_iter)
+            self.scheduler.step()
 
             # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
             # del src_aux_logits, src_class_logits
@@ -171,23 +168,23 @@ class AuxModel:
                 class_acc = self.test(val_loader)
                 # self.writer.add_scalar('val/aux_acc', class_acc, i_iter)
                 self.writer.add_scalar('val/class_acc', class_acc, i_iter)
-                if class_acc > best_acc:
-                    best_acc = class_acc
+                if class_acc > self.best_acc:
+                    self.best_acc = class_acc
                     self.save(self.config.best_model_dir, i_iter)
                     # todo copy current model to best model
-                self.logger.info('Best testing accuracy: {:.2f} %'.format(best_acc))
+                self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
 
             if test_loader is not None:
                 self.logger.info('testing...')
                 class_acc = self.test(test_loader)
                 # self.writer.add_scalar('test/aux_acc', class_acc, i_iter)
                 self.writer.add_scalar('test/class_acc', class_acc, i_iter)
-                if class_acc > best_acc:
-                    best_acc = class_acc
+                if class_acc > self.best_acc:
+                    self.best_acc = class_acc
                     # todo copy current model to best model
-                self.logger.info('Best testing accuracy: {:.2f} %'.format(best_acc))
+                self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
 
-        self.logger.info('Best testing accuracy: {:.2f} %'.format(best_acc))
+        self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
         self.logger.info('Finished Training.')
 
     def save(self, path, i_iter):
@@ -195,6 +192,7 @@ class AuxModel:
                 "model_state": self.model.state_dict(),
                 "optimizer_state": self.optimizer.state_dict(),
                 "scheduler_state": self.scheduler.state_dict(),
+                 "best_acc": self.best_acc,
                 }
         save_path = os.path.join(path, 'model_{:06d}.pth'.format(i_iter))
         self.logger.info('Saving model to %s' % save_path)
@@ -210,6 +208,7 @@ class AuxModel:
             self.optimizer.load_state_dict(checkpoint['optimizer_state'])
             self.scheduler.load_state_dict(checkpoint['scheduler_state'])
             self.start_iter = checkpoint['iter']
+            self.best_acc = checkpoint['best_acc']
             self.logger.info('Start iter: %d ' % self.start_iter)
 
     def test(self, val_loader):

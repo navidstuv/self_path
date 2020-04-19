@@ -1,8 +1,7 @@
 import random
 from utils.dirs import create_dirs
 from configs.configs import config
-from utils.utils import  get_logger
-from models.model import get_model
+from utils.utils import  get_logger, set_seed
 
 from models.all_models import AuxModel
 from data.data_loader import get_loaders
@@ -16,8 +15,6 @@ def main():
     # logging to the file and stdout
     logger = get_logger(config.log_dir, config.exp_name)
 
-    # fix random seed to reproduce results
-    random.seed(config.random_seed)
     logger.info('Random seed: {:d}'.format(config.random_seed))
 
     # model = get_model(config)
@@ -35,4 +32,6 @@ def main():
 
 
 if __name__ == '__main__':
+    set_seed(config.random_seed)
     main()
+
