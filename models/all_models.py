@@ -192,6 +192,8 @@ class AuxModel:
                 for task_name in self.config.aux_task_names:
                     self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
                     self.writer.add_scalar('losses/tar_aux_loss_'+task_name, tar_aux_loss[task_name], i_iter)
+            self.d_scheduler.step()
+            self.g_scheduler.step()
 
             # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
             # del src_aux_logits, src_class_logits
