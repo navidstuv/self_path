@@ -57,12 +57,7 @@ class DefaultConfigs(object):
     momentum= 0.9
     nesterov= True
 
-lr_scheduler= {'name': 'step', 'step_size': 24}
+    gpus = '0'
 
-
-
-validation_model=''
-
-testing_model=''
 
 config = DefaultConfigs()

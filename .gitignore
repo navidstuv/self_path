@@ -15,6 +15,7 @@ __pycache__/
 *.mat
 *.bmp
 *.pickle
+*.xml
 
 # Model and other data
 *.pth
