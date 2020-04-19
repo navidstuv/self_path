@@ -4,6 +4,9 @@ from configs.configs import config
 from torch.utils.data import Dataset
 from tqdm import tqdm
 from data.utils import center_crop
+from skimage.color import rgb2hed, gray2rgb
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import minmax_scale
 
 from albumentations.augmentations.transforms import CenterCrop
 import os
@@ -16,6 +19,11 @@ class Unlabeller():
 def preprocess_input(x):
     x /= 127
     return x - 1
+
+def preprocess_input_stain(x):
+    x  = x - np.amin(x)
+    x = x/np.amax(x)
+    return x
 
 class Histodata(Dataset):
 
@@ -92,26 +100,45 @@ class Histodata(Dataset):
 
             mag = np.random.choice(['40x', '20x', '10x'], 1)
             if mag=='40x':
-                aux_image = center_crop(img, 128, 128)
-                aux_label = 0
+                aux_image_mag = center_crop(img, 128, 128)
+                aux_label_mag = 0
             if mag=='20x':
-                aux_image = center_crop(img, 256, 256)
-                aux_image = cv2.resize(aux_image, (128, 128), interpolation=cv2.INTER_AREA)
-                aux_label = 1
+                aux_image_mag = center_crop(img, 256, 256)
+                aux_image_mag = cv2.resize(aux_image_mag, (128, 128), interpolation=cv2.INTER_AREA)
+                aux_label_mag = 1
             if mag=='10x':
-                aux_image = cv2.resize(img, (128, 128), interpolation=cv2.INTER_AREA)
-                aux_label = 2
+                aux_image_mag = cv2.resize(img, (128, 128), interpolation=cv2.INTER_AREA)
+                aux_label_mag = 2
 
-            aux_image = preprocess_input (aux_image.astype(np.float32))
-            aux_image = torch.from_numpy(aux_image).float()
-            aux_image = aux_image.permute(2, 0, 1)
-            aux_label = torch.from_numpy(np.array(aux_label)).long()
+            stain = np.random.choice(['H', 'E'], 1)
+            if stain=='H':
+                aux_image_stain = rgb2hed(main_img)[: ,: ,0]
+                aux_image_stain = preprocess_input_stain(aux_image_stain)
+                aux_image_stain = aux_image_stain[:,:,np.newaxis]
+                aux_image_stain = np.repeat(aux_image_stain,3, axis=2)
+                aux_label_stain = 0
+            if stain=='E':
+                aux_image_stain = rgb2hed(main_img)[:, :, 1]
+                aux_image_stain = preprocess_input_stain(aux_image_stain)
+                aux_image_stain = aux_image_stain[:,:,np.newaxis]
+                aux_image_stain = np.repeat(aux_image_stain,3, axis=2)
+                aux_label_stain = 1
+
+            aux_image_mag = preprocess_input (aux_image_mag.astype(np.float32))
+            aux_image_mag = torch.from_numpy(aux_image_mag).float()
+            aux_image_mag = aux_image_mag.permute(2, 0, 1)
+            aux_label_mag = torch.from_numpy(np.array(aux_label_mag)).long()
+
+            aux_image_stain = torch.from_numpy(aux_image_stain).float()
+            aux_image_stain = aux_image_stain.permute(2, 0, 1)
+            aux_label_stain = torch.from_numpy(np.array(aux_label_stain)).long()
+
 
             main_img = preprocess_input (main_img.astype(np.float32))
             main_img = torch.from_numpy(main_img).float()
             main_img = main_img.permute(2, 0, 1)
             label = torch.from_numpy(np.array(label)).long()
-            return main_img, label, aux_image, aux_label
+            return main_img, label, aux_image_mag, aux_label_mag, aux_image_stain, aux_label_stain
     def __len__(self):
         if self.unlabeled==True:
             return len(self.imgs_unlabel)
@@ -156,8 +183,6 @@ class Histodata_unlabel_domain_adopt(Dataset):
             self.imgs_unlabel = np.append(normal_path_all, tumour_path_all)
             # self.imgs_unlabel = list(set(self.imgs_all) - set(self.imgs))
 
-
-
     def __getitem__(self,index):
         if self.unlabeled==True:
             filename = self.imgs_unlabel[index]
@@ -166,26 +191,44 @@ class Histodata_unlabel_domain_adopt(Dataset):
 
             mag = np.random.choice(['40x', '20x', '10x'], 1)
             if mag=='40x':
-                aux_image = center_crop(img, 128, 128)
-                aux_label = 0
+                aux_image_mag = center_crop(img, 128, 128)
+                aux_label_mag = 0
             if mag=='20x':
-                aux_image = center_crop(img, 256, 256)
-                aux_image = cv2.resize(aux_image, (128, 128), interpolation=cv2.INTER_AREA)
-                aux_label = 1
+                aux_image_mag = center_crop(img, 256, 256)
+                aux_image_mag = cv2.resize(aux_image_mag, (128, 128), interpolation=cv2.INTER_AREA)
+                aux_label_mag = 1
             if mag=='10x':
-                aux_image = cv2.resize(img, (128, 128), interpolation=cv2.INTER_AREA)
-                aux_label = 2
+                aux_image_mag = cv2.resize(img, (128, 128), interpolation=cv2.INTER_AREA)
+                aux_label_mag = 2
+
+
+            stain = np.random.choice(['H', 'E'], 1)
+            main_img = cv2.resize(img, (128, 128), interpolation=cv2.INTER_AREA)
+            if stain=='H':
+                aux_image_stain = rgb2hed(main_img)[: ,: ,0]
+                aux_image_stain = preprocess_input_stain(aux_image_stain)
+                aux_image_stain = aux_image_stain[:,:,np.newaxis]
+                aux_image_stain = np.repeat(aux_image_stain,3, axis=2)
+                aux_label_stain = 0
+            if stain=='E':
+                aux_image_stain = rgb2hed(main_img)[:, :, 1]
+                aux_image_stain = preprocess_input_stain(aux_image_stain)
+                aux_image_stain = aux_image_stain[:,:,np.newaxis]
+                aux_image_stain = np.repeat(aux_image_stain,3, axis=2)
+                aux_label_stain = 1
+
 
             if self.augment:
-                aux_image = self.augment(aux_image.shape)(image=aux_image)
-                aux_image = aux_image['image']
+                aux_image_mag = self.augment(aux_image_mag.shape)(image=aux_image_mag)
+                aux_image_mag = aux_image_mag['image']
 
-            aux_image = preprocess_input (aux_image.astype(np.float32))
-            aux_image = torch.from_numpy(aux_image).float()
-            aux_image = aux_image.permute(2, 0, 1)
+            aux_image_mag = preprocess_input (aux_image_mag.astype(np.float32))
+            aux_image_mag = torch.from_numpy(aux_image_mag).float()
+            aux_image_mag = aux_image_mag.permute(2, 0, 1)
 
-
-            return aux_image, aux_label
+            aux_image_stain = torch.from_numpy(aux_image_stain).float()
+            aux_image_stain = aux_image_stain.permute(2, 0, 1)
+            return aux_image_mag, aux_label_mag, aux_image_stain, aux_label_stain
         else:
             filename = self.imgs[index]
             img = cv2.imread(os.path.join(self.path, filename))
@@ -205,6 +248,7 @@ class Histodata_unlabel_domain_adopt(Dataset):
             img = img.permute(2, 0, 1)
             label = torch.from_numpy(np.array(label)).long()
             return img, label
+
     def __len__(self):
         if self.unlabeled==True:
             return len(self.imgs_unlabel)
