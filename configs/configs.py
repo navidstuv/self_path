@@ -11,34 +11,34 @@ class DefaultConfigs(object):
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3}, 'main_task': {'type': 'classification', 'n_classes': 2} }
     loss_weight = {'magnification': 0.2, 'main_task': 1}
 
-    log_dir = 'E:\Back_up\experiments_log\domain_adoptation\main_task_mag\logs'
-    cache_dir = 'E:\Back_up\experiments_log\domain_adoptation\main_task_mag\cache'
-    model_dir = 'E:\Back_up\experiments_log\domain_adoptation\main_task_mag\model'
-    best_model_dir = 'E:\Back_up\experiments_log\domain_adoptation\main_task_mag\\best_model'
+    log_dir = 'main_task_mag2/logs'
+    cache_dir = 'main_task_mag2/cache'
+    model_dir = 'main_task_mag2/model'
+    best_model_dir = 'main_task_mag2/best_model'
     training_resume = ''
     training_num_print_epoch = 20
 
     #source domain
     src_batch_size = 32
-    base_data_path = 'G:\\512allcamelyon'
-    pickle_path = 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\training_cam.pickle'
+    base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
+    pickle_path = 'pickle_files/training_cam.pickle'
     budget = 'training_cam1'
 
     #target domain
     tar_batch_size = 32
-    base_data_path_unlabel = 'G:\\512all'
-    pickle_path_unlabel= 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\training.pickle'
+    base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
+    pickle_path_unlabel= 'pickle_files/training.pickle'
     budget_unlabel = 'training1'
 
 
 
     #validation
-    pickle_path_valid = 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\validation_cam.pickle'
+    pickle_path_valid = 'pickle_files/validation_cam.pickle'
     budget_valid = 'validation_cam1'
 
 
     #test
-    pickle_path_test = 'E:\Back_up\git-files\Multi_task_domain_adapt\pickle_files\\test.pickle'
+    pickle_path_test = 'pickle_files/test.pickle'
     budget_test = 'test1'
     testing_model ='model_028623.pth'
 
@@ -48,7 +48,7 @@ class DefaultConfigs(object):
 
 
 
-    random_seed = 22
+    random_seed = 33
     num_epochs = 100
 
     optimizer = 'sgd'
