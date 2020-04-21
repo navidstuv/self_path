@@ -72,9 +72,9 @@ class AuxModel:
             cudnn.benchmark = True
 
         elif config.mode == 'val':
-            self.load(os.path.join(config.model_dir, config.validation_model))
+            self.load(os.path.join(config.testing_model))
         else:
-            self.load(os.path.join(config.best_model_dir, config.testing_model))
+            self.load(os.path.join(config.testing_model))
 
     def entropy_loss(self, x):
         return torch.sum(-F.softmax(x, 1) * F.log_softmax(x, 1), 1).mean()
@@ -249,8 +249,8 @@ class AuxModel:
             tt.close()
         if self.config.save_output==True:
             soft_labels = soft_labels[1:, :]
-            np.save('pred_cam1234.npy', soft_labels)
-            np.save('true_cam1234.npy', true_labels)
+            np.save('pred_val_mag2.npy', soft_labels)
+            np.save('true__val_mag2.npy', true_labels)
 
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total

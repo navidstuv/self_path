@@ -7,8 +7,12 @@ import datetime
 import collections
 import numpy as np
 import random
-from PIL import Image, ImageDraw
+from sklearn.metrics import precision_recall_curve, precision_score, recall_score, \
+    f1_score, accuracy_score, roc_curve, average_precision_score, roc_auc_score, confusion_matrix
+import matplotlib.pyplot as plt
+from inspect import signature
 from collections import OrderedDict
+
 
 def get_args():
     argparser = argparse.ArgumentParser(description=__doc__)
@@ -19,6 +23,7 @@ def get_args():
         help='The Configuration file')
     args = argparser.parse_args()
     return args
+
 
 def to_device(input, device):
     if torch.is_tensor(input):
@@ -31,6 +36,7 @@ def to_device(input, device):
         return [to_device(sample, device=device) for sample in input]
     else:
         raise TypeError("Input must contain tensor, dict or list, found {type(input)}")
+
 
 def cls_acc(output, target, topk=(1,)):
     """Computes the precision@k for the specified values of k"""
@@ -47,6 +53,7 @@ def cls_acc(output, target, topk=(1,)):
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
 
+
 def eval_seg(label_preds, label_trues, n_class):
     hist = np.zeros((n_class, n_class))
     for lt, lp in zip(label_trues, label_preds):
@@ -56,11 +63,13 @@ def eval_seg(label_preds, label_trues, n_class):
     mean_iou = np.nanmean(iou)
     return mean_iou
 
+
 def fast_hist(label_pred, label_true, n_class):
     mask = (label_true >= 0) & (label_true < n_class)
     return np.bincount(
         n_class * label_true[mask].astype(int) + label_pred[mask],
         minlength=n_class ** 2).reshape(n_class, n_class)
+
 
 def per_class_iou(hist):
     return np.diag(hist) / (hist.sum(1) + hist.sum(0) - np.diag(hist))
@@ -76,6 +85,7 @@ def convert_state_dict(state_dict):
         name = k[7:]  # remove `module.`
         new_state_dict[name] = v
     return new_state_dict
+
 
 def get_logger(logdir, name):
     logger = logging.getLogger(name)
@@ -95,17 +105,135 @@ def get_logger(logdir, name):
     logger.addHandler(strm_hdlr)
     return logger
 
+
 def make_inf_dl(dl):
     while True:
         try:
             data_iter = iter(dl)
             yield next(data_iter)
         except StopIteration:
-            del(data_iter)
+            del (data_iter)
             data_iter = iter(dl)
+
 
 def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+
+
+def f11_score(precision, recall):
+    f1 = 2 * np.divide(np.multiply(precision, recall), np.add(precision, recall))
+    return f1
+
+
+def stats(soft_labels, true_labels, opt_thresh = 0.5):
+    '''
+    prediction should be soft labels
+
+    :param pred:
+    :param true:
+    :return:
+    '''
+
+    tumour_class = [x[1] for x in soft_labels]
+
+    def thresh_fuc(input, thres_value):
+        if input < thres_value:
+            input = 0
+        else:
+            input = 1
+        return input
+
+    # pred_labels = tumour_class.copy()
+    pred_labels = [thresh_fuc(i, opt_thresh) for i in tumour_class]
+
+    # pred_labels = np.argmax(soft_labels, axis=-1)
+    # GT = test_generator.classes
+    # tumour_class=  np.array(tumour_class)
+    # threshold = 0.5
+    fpr, tpr, thresholds = roc_curve(true_labels, tumour_class, pos_label=1)
+    plt.figure(1)
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.plot(fpr, tpr, label='Tumor')
+    plt.xlabel('False positive rate')
+    plt.ylabel('True positive rate')
+    plt.title('ROC curve')
+    plt.legend(loc='best')
+    plt.show()
+    # ---------------------------------------------
+
+    precision, recall, thresholds = precision_recall_curve(true_labels,
+                                                           tumour_class)
+    f1 = f11_score(precision, recall)
+    nan_places = np.isnan(f1)
+    f1[nan_places] = 0
+
+    print('max f1 score:{} optimal thresh: {}'.format(np.amax(f1), thresholds[np.where(f1 == np.amax(f1))]))
+    average_precision = average_precision_score(true_labels, tumour_class)
+
+    plt.figure(figsize=(7, 8))
+    f_scores = np.linspace(0.2, 0.9, num=5)
+    lines = []
+    labels = []
+    for f_score in f_scores:
+        x = np.linspace(0.01, 1)
+        y = f_score * x / (2 * x - f_score)
+        l, = plt.plot(x[y >= 0], y[y >= 0], color='gray', alpha=0.2)
+        plt.annotate('f1={0:0.1f}'.format(f_score), xy=(0.9, y[45] + 0.02))
+
+    lines.append(l)
+    labels.append('iso-f1 curves')
+
+    l, = plt.plot(recall, precision, color='turquoise', lw=2)
+    lines.append(l)
+    labels.append('Precision-recall for class Tumour (area = {:0.4f})'.format(average_precision))
+
+    l, = plt.plot(recall, f1, color='cornflowerblue', lw=2)
+    lines.append(l)
+    labels.append(
+        'max f1 score:{:0.2f} optimal thresh: {:0.2f}'.format(np.amax(f1), thresholds[np.where(f1 == np.amax(f1))][0]))
+
+    fig = plt.gcf()
+    fig.subplots_adjust(bottom=0.25)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Precision-Recall curve')
+    plt.legend(lines, labels, loc=(0, -.38), prop=dict(size=14))
+
+    # ---------------------------------------------
+    precision, recall, _ = precision_recall_curve(true_labels, tumour_class)
+
+    # In matplotlib < 1.5, plt.fill_between does not have a 'step' argument
+    step_kwargs = ({'step': 'post'}
+                   if 'step' in signature(plt.fill_between).parameters
+                   else {})
+    plt.step(recall, precision, color='b', alpha=0.2,
+             where='post')
+    plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
+
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.ylim([0.0, 1.05])
+    plt.xlim([0.0, 1.0])
+    plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format(
+        average_precision_score(true_labels, tumour_class)))
+    plt.show()
+    Auc = roc_auc_score(true_labels, tumour_class)
+    # tumour_class[tumour_class>threshold] = 1
+    # tumour_class[tumour_class <= threshold] = 0
+
+    F1 = f1_score(true_labels, pred_labels, pos_label=1)
+    ACC = accuracy_score(true_labels, pred_labels)
+    conf_matrix = confusion_matrix(true_labels, pred_labels)
+    precision = precision_score(true_labels, pred_labels)
+    recall = recall_score(true_labels, pred_labels)
+    print('f1 score is: {}'.format(F1))
+    print('Accuracy score is: {}'.format(ACC))
+    print('Auc is: {}'.format(Auc))
+    print('conf_matrix is: {}'.format(conf_matrix))
+    print('Precision is {}'.format(precision))
+    print('recall is {}'.format(recall))

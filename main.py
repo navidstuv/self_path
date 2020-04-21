@@ -29,6 +29,8 @@ def main():
 
     if config.mode == 'train':
         model.train(src_loader, tar_loader, val_loader, None)
+    elif config.mode == 'val':
+        model.test(val_loader)
     elif config.mode == 'test':
         model.test(test_loader)
 
