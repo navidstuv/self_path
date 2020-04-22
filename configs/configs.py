@@ -7,6 +7,7 @@ class DefaultConfigs(object):
     pretrained = False
     gan_latent_dim = 100
     exp_name = ' cam-oscc'
+
     task_names = ['main_task']# ['main_task', 'magnification','domain_classifier','stain']
     aux_task_names = []#['magnification', 'domain_classifier', 'stain']
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3}, 'main_task': {'type': 'classification', 'n_classes': 2},
@@ -19,6 +20,7 @@ class DefaultConfigs(object):
     model_dir = 'GAN_da_classifier/model'
     best_model_dir = 'GAN_da_classifier/best_model'
     training_resume = ''
+
     training_num_print_epoch = 1
 
 
@@ -45,9 +47,9 @@ class DefaultConfigs(object):
     #test
     pickle_path_test = 'pickle_files/test.pickle'
     budget_test = 'test1'
-    testing_model ='model_002120.pth'
+    testing_model ='model_033922.pth'
 
-    save_output = False
+    save_output = True
     eval_batch_size = 128
     test_batch_size = 128
 

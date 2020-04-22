@@ -81,7 +81,7 @@ class AuxModel:
         elif config.mode == 'val':
             self.load(os.path.join(config.model_dir, config.validation_model))
         else:
-            self.load(os.path.join(config.model_dir, config.testing_model))
+            self.load(os.path.join(config.best_model_dir, config.testing_model))
 
     def entropy_loss(self, x):
         return torch.sum(-F.softmax(x, 1) * F.log_softmax(x, 1), 1).mean()
@@ -216,12 +216,16 @@ class AuxModel:
                 self.writer.add_scalar('losses/all_loss', losses.avg, i_iter)
                 self.writer.add_scalar('losses/src_main_loss', loss_lab, i_iter)
                 for task_name in self.config.aux_task_names:
+
                     if task_name == 'domain_classifier':
                         # self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
                         self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name], i_iter)
                     else:
                         self.writer.add_scalar('losses/src_aux_loss_' + task_name, src_aux_loss[task_name], i_iter)
                         self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name], i_iter)
+
+            self.d_scheduler.step()
+            self.g_scheduler.step()
 
             # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
             # del src_aux_logits, src_class_logits
@@ -322,8 +326,8 @@ class AuxModel:
             tt.close()
         if self.config.save_output == True:
             soft_labels = soft_labels[1:, :]
-            np.save('pred_cam1234.npy', soft_labels)
-            np.save('true_cam1234.npy', true_labels)
+            np.save('pred_cam12345.npy', soft_labels)
+            np.save('true_cam12345.npy', true_labels)
 
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total
