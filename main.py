@@ -1,4 +1,6 @@
-import random
+from configs.configs import config
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = config.gpus
 from utils.dirs import create_dirs
 from configs.configs import config
 from utils.utils import  get_logger
@@ -17,7 +19,6 @@ def main():
     logger = get_logger(config.log_dir, config.exp_name)
 
     # fix random seed to reproduce results
-    random.seed(config.random_seed)
     logger.info('Random seed: {:d}'.format(config.random_seed))
 
     # model = get_model(config)
