@@ -112,15 +112,16 @@ class AuxModel:
                 src_imgs, src_cls_lbls, src_aux_imgs, src_aux_lbls = src
                 tar_imgs, tar_aux_lbls = tar
 
-                r = torch.randperm(src_imgs.size()[0]+tar_imgs.size()[0])
-                src_tar_imgs = torch.cat((src_imgs, tar_imgs), dim=0)
-                src_tar_imgs = src_tar_imgs[r,:,:,:]
-                src_tar_img = src_tar_imgs[:src_imgs.size()[0],:,:,:]
+                if 'domain_classifier' in self.config.task_names:
+                    r = torch.randperm(src_imgs.size()[0]+tar_imgs.size()[0])
+                    src_tar_imgs = torch.cat((src_imgs, tar_imgs), dim=0)
+                    src_tar_imgs = src_tar_imgs[r,:,:,:]
+                    src_tar_img = src_tar_imgs[:src_imgs.size()[0],:,:,:]
 
-                src_tar_lbls = torch.cat((torch.zeros((src_imgs.size()[0])), torch.ones((tar_imgs.size()[0]))), dim=0)
-                src_tar_lbls = src_tar_lbls[r]
-                src_tar_lbls = src_tar_lbls[:src_imgs.size()[0]]
-                src_tar_lbls = src_tar_lbls.long().cuda()
+                    src_tar_lbls = torch.cat((torch.zeros((src_imgs.size()[0])), torch.ones((tar_imgs.size()[0]))), dim=0)
+                    src_tar_lbls = src_tar_lbls[r]
+                    src_tar_lbls = src_tar_lbls[:src_imgs.size()[0]]
+                    src_tar_lbls = src_tar_lbls.long().cuda()
 
 
 
@@ -146,16 +147,19 @@ class AuxModel:
                 tar_aux_loss = {}
                 src_aux_loss = {}
 
-                src_tar_logits = self.d_model(src_tar_img, 'domain_classifier')
-                tar_aux_logits = self.d_model(tar_imgs, 'magnification')
-                src_aux_logits = self.d_model(src_aux_imgs, 'magnification')
-                tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_logits, tar_aux_lbls)
-                src_aux_loss['magnification'] = self.class_loss_func(src_aux_logits, src_aux_lbls)
-                tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tar_lbls)
+                if 'domain_classifier' in self.config.task_names:
+                    src_tar_logits = self.d_model(src_tar_img, 'domain_classifier')
+                    tar_aux_logits = self.d_model(tar_imgs, 'magnification')
+                    src_aux_logits = self.d_model(src_aux_imgs, 'magnification')
+                    loss_disc += tar_aux_loss['domain_classifier'] * self.config.loss_weight['domain_classifier']
 
-                loss_disc += src_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: magnification weight
-                loss_disc += tar_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: main task weight
-                loss_disc += tar_aux_loss['domain_classifier'] * self.config.loss_weight['domain_classifier']
+                if 'magnification' in self.config.task_names:
+                    tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_logits, tar_aux_lbls)
+                    src_aux_loss['magnification'] = self.class_loss_func(src_aux_logits, src_aux_lbls)
+                    tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tar_lbls)
+                    loss_disc += src_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: magnification weight
+                    loss_disc += tar_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: main task weight
+
 
                 loss_disc.backward()
                 self.d_optimizer.step()
