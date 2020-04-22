@@ -53,6 +53,7 @@ class AuxModel:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = get_model(config)
         self.model = self.model.to(self.device)
+        self.best_acc = 0
 
         if config.mode == 'train':
             # set up optimizer, lr scheduler and loss functions
@@ -179,23 +180,23 @@ class AuxModel:
                 class_acc = self.test(val_loader)
                 # self.writer.add_scalar('val/aux_acc', class_acc, i_iter)
                 self.writer.add_scalar('val/class_acc', class_acc, i_iter)
-                if class_acc > best_acc:
-                    best_acc = class_acc
+                if class_acc > self.best_acc:
+                    self.best_acc = class_acc
                     self.save(self.config.best_model_dir, i_iter)
                     # todo copy current model to best model
-                self.logger.info('Best testing accuracy: {:.2f} %'.format(best_acc))
+                self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
 
             if test_loader is not None:
                 self.logger.info('testing...')
                 class_acc = self.test(test_loader)
                 # self.writer.add_scalar('test/aux_acc', class_acc, i_iter)
                 self.writer.add_scalar('test/class_acc', class_acc, i_iter)
-                if class_acc > best_acc:
-                    best_acc = class_acc
+                if class_acc > self.best_acc:
+                    self.best_acc = class_acc
                     # todo copy current model to best model
-                self.logger.info('Best testing accuracy: {:.2f} %'.format(best_acc))
+                self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
 
-        self.logger.info('Best testing accuracy: {:.2f} %'.format(best_acc))
+        self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
         self.logger.info('Finished Training.')
 
     def save(self, path, i_iter):
@@ -203,6 +204,7 @@ class AuxModel:
                 "model_state": self.model.state_dict(),
                 "optimizer_state": self.optimizer.state_dict(),
                 "scheduler_state": self.scheduler.state_dict(),
+                 "best_scc":self.best_acc
                 }
         save_path = os.path.join(path, 'model_{:06d}.pth'.format(i_iter))
         self.logger.info('Saving model to %s' % save_path)
@@ -218,6 +220,7 @@ class AuxModel:
             self.optimizer.load_state_dict(checkpoint['optimizer_state'])
             self.scheduler.load_state_dict(checkpoint['scheduler_state'])
             self.start_iter = checkpoint['iter']
+            self.best_acc = checkpoint['best_acc']
             self.logger.info('Start iter: %d ' % self.start_iter)
 
     def test(self, val_loader):

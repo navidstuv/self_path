@@ -4,6 +4,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = config.gpus
 from utils.dirs import create_dirs
 from configs.configs import config
 from utils.utils import  get_logger
+from utils.utils import set_seed
 from models.model import get_model
 
 from models.all_models import AuxModel
@@ -36,4 +37,5 @@ def main():
 
 
 if __name__ == '__main__':
+    set_seed(config.random_seed)
     main()
