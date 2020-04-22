@@ -218,6 +218,14 @@ class Histodata_unlabel_domain_adopt(Dataset):
             img = cv2.imread(os.path.join(self.path, filename))
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
+            # resize image
+            width = int(img.shape[1] * 25 / 100)
+            height = int(img.shape[0] * 25 / 100)
+            dim = (width, height)
+            main_img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+            if self.augment:
+                main_img = self.augment(main_img.shape)(image=main_img)
+                main_img = main_img['image']
             if 'magnification' in config.task_names:
                 mag = np.random.choice(['40x', '20x', '10x'], 1)
                 if mag=='40x':
@@ -256,16 +264,18 @@ class Histodata_unlabel_domain_adopt(Dataset):
                 aux_image_stain = torch.from_numpy(aux_image_stain).float()
                 aux_image_stain = aux_image_stain.permute(2, 0, 1)
 
-
+            main_img = preprocess_input (main_img.astype(np.float32))
+            main_img = torch.from_numpy(main_img).float()
+            main_img = main_img.permute(2, 0, 1)
 
             if 'magnification' in config.task_names and 'stain' not in config.task_names:
-                return aux_image_mag, aux_label_mag, -1, -1
+                return main_img, -1, aux_image_mag, aux_label_mag, -1, -1
             elif 'stain' in config.task_names and 'magnification' not in config.task_names:
-                return -1, -1, aux_image_stain, aux_label_stain
+                return main_img, -1, -1, -1, aux_image_stain, aux_label_stain
             elif 'stain' in config.task_names and 'magnification' in config.task_names:
-                return aux_image_mag, aux_label_mag, aux_image_stain, aux_label_stain
+                return main_img, -1, aux_image_mag, aux_label_mag, aux_image_stain, aux_label_stain
             else:
-                return -1, -1, -1, -1
+                return main_img, -1, -1, -1, -1, -1
         else:
             filename = self.imgs[index]
             img = cv2.imread(os.path.join(self.path, filename))
