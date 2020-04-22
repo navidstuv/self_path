@@ -5,6 +5,7 @@ import logging
 import argparse
 import datetime
 import collections
+import random
 import numpy as np
 from PIL import Image, ImageDraw
 from collections import OrderedDict
@@ -102,3 +103,8 @@ def make_inf_dl(dl):
         except StopIteration:
             del(data_iter)
             data_iter = iter(dl)
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
