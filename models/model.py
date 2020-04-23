@@ -5,6 +5,7 @@ import torch.nn as nn
 from .encoder import get_resnet
 from .decoders import  UnetDecoder, Classifier
 from torch import optim
+from pytorch_revgrad import RevGrad
 
 
 class MultiTaskCNN(nn.Module):
@@ -16,6 +17,7 @@ class MultiTaskCNN(nn.Module):
         """
         super(MultiTaskCNN, self).__init__()
         self.base, self.latent_dim  = get_resnet(encoder_name, pretrained=pretrained)
+        self.reverse_grad = RevGrad()
         self.decoders = nn.ModuleDict({})
 
     def forward(self, x, task_name):
@@ -26,11 +28,17 @@ class MultiTaskCNN(nn.Module):
         :return:
         """
         x = self.base(x)
-
-        if isinstance(self.decoders[task_name], UnetDecoder):
-            out = self.decoders[task_name](x, layer0, layer1, layer2, layer3, layer4)
-        if isinstance(self.decoders[task_name], Classifier):
-            out = self.decoders[task_name](x)
+        if task_name=='domain_classifier':
+            if isinstance(self.decoders[task_name], UnetDecoder):
+                out = self.decoders[task_name](x, layer0, layer1, layer2, layer3, layer4)
+            if isinstance(self.decoders[task_name], Classifier):
+                x = self.reverse_grad(x)
+                out = self.decoders[task_name](x)
+        else:
+            if isinstance(self.decoders[task_name], UnetDecoder):
+                out = self.decoders[task_name](x, layer0, layer1, layer2, layer3, layer4)
+            if isinstance(self.decoders[task_name], Classifier):
+                out = self.decoders[task_name](x)
         return out
 
 

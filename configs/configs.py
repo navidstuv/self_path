@@ -18,8 +18,8 @@ class DefaultConfigs(object):
     cache_dir = './main_mag_dom1/cache'
     model_dir = './main_mag_dom1/model'
     best_model_dir = './main_mag_dom1/best_model'
-    training_resume = 'model_002120.pth'
-    training_num_print_epoch = 20
+    training_resume = ''
+    training_num_print_epoch = 1000
 
 
     #source domain
