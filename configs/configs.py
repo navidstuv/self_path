@@ -6,17 +6,21 @@ class DefaultConfigs(object):
     encoder_name = 'resnet50'
     pretrained = False
     exp_name = ' cam-oscc'
-    task_names = ['main_task', 'magnification']
-    aux_task_names = ['magnification']
-    tasks = {'magnification': {'type': 'classification', 'n_classes': 3}, 'main_task': {'type': 'classification', 'n_classes': 2} }
-    loss_weight = {'magnification': 0.2, 'main_task': 1}
+    task_names = ['main_task', 'stain']#['main_task', 'magnification', 'stain']
+    aux_task_names =task_names[1:]
+    tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
+             'main_task': {'type': 'classification', 'n_classes': 2},
+             'stain': {'type': 'classification', 'n_classes': 2},
+             'domain_classifier': {'type': 'classification', 'n_classes': 2}}
+    loss_weight = {'magnification': 0.2, 'domain_classifier':0.2, 'main_task': 1}
 
-    log_dir = 'main_task_mag2/logs'
-    cache_dir = 'main_task_mag2/cache'
-    model_dir = 'main_task_mag2/model'
-    best_model_dir = 'main_task_mag2/best_model'
+    log_dir = './main_mag_stain1/logs'
+    cache_dir = './main_mag_stain1/cache'
+    model_dir = './main_mag_stain1/model'
+    best_model_dir = './main_mag_stain1/best_model'
     training_resume = ''
-    training_num_print_epoch = 20
+    training_num_print_epoch = 1000
+
 
     #source domain
     src_batch_size = 32
@@ -27,18 +31,18 @@ class DefaultConfigs(object):
     #target domain
     tar_batch_size = 32
     base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
-    pickle_path_unlabel= 'pickle_files/training.pickle'
+    pickle_path_unlabel= './pickle_files/training.pickle'
     budget_unlabel = 'training1'
 
 
 
     #validation
-    pickle_path_valid = 'pickle_files/validation_cam.pickle'
+    pickle_path_valid = './pickle_files/validation_cam.pickle'
     budget_valid = 'validation_cam1'
 
 
     #test
-    pickle_path_test = 'pickle_files/test.pickle'
+    pickle_path_test = './pickle_files/test.pickle'
     budget_test = 'test1'
     testing_model ='model_028623.pth'
 
@@ -50,12 +54,8 @@ class DefaultConfigs(object):
 
     random_seed = 33
     num_epochs = 100
-
-    optimizer = 'sgd'
+    gpus = '0'
     lr =  0.001
-    weight_decay= 0.0005
-    momentum= 0.9
-    nesterov= True
 
     gpus = '0'
 

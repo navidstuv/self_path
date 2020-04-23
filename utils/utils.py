@@ -5,6 +5,7 @@ import logging
 import argparse
 import datetime
 import collections
+import random
 import numpy as np
 import random
 from sklearn.metrics import precision_recall_curve, precision_score, recall_score, \
@@ -114,7 +115,6 @@ def make_inf_dl(dl):
         except StopIteration:
             del (data_iter)
             data_iter = iter(dl)
-
 
 def set_seed(seed):
     random.seed(seed)
@@ -237,3 +237,4 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
     print('conf_matrix is: {}'.format(conf_matrix))
     print('Precision is {}'.format(precision))
     print('recall is {}'.format(recall))
+

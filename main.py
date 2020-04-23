@@ -1,10 +1,12 @@
-import os
-from configs.configs import config
-os.environ["CUDA_VISIBLE_DEVICES"] = config.gpus
-import random
-from utils.dirs import create_dirs
-from utils.utils import  get_logger, set_seed
 
+from configs.configs import config
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = config.gpus
+from utils.dirs import create_dirs
+from configs.configs import config
+from utils.utils import  get_logger
+from utils.utils import set_seed
+from models.model import get_model
 from models.all_models import AuxModel
 from data.data_loader import get_loaders
 
@@ -17,11 +19,11 @@ def main():
     # logging to the file and stdout
     logger = get_logger(config.log_dir, config.exp_name)
 
+    # fix random seed to reproduce results
     logger.info('Random seed: {:d}'.format(config.random_seed))
 
     # model = get_model(config)
     model = AuxModel(config, logger)
-
 
 
     src_loader, tar_loader, val_loader, test_loader  = get_loaders(config)
