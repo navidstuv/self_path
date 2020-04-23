@@ -19,7 +19,7 @@ class DefaultConfigs(object):
     model_dir = './main_mag_dom1/model'
     best_model_dir = './main_mag_dom1/best_model'
     training_resume = ''
-    training_num_print_epoch = 1000
+    training_num_print_epoch = 20
 
 
     #source domain
