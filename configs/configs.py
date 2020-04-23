@@ -6,8 +6,8 @@ class DefaultConfigs(object):
     encoder_name = 'resnet50'
     pretrained = False
     exp_name = ' cam-oscc'
-    task_names = ['main_task', 'domain_classifier']#['main_task', 'magnification', 'stain']
-    aux_task_names = ['domain_classifier']#['magnification', 'stain']
+    task_names = ['main_task', 'stain']#['main_task', 'magnification', 'stain']
+    aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'main_task': {'type': 'classification', 'n_classes': 2},
              'stain': {'type': 'classification', 'n_classes': 2},
