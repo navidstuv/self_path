@@ -73,9 +73,9 @@ class AuxModel:
             cudnn.benchmark = True
 
         elif config.mode == 'val':
-            self.load(os.path.join(config.model_dir, config.validation_model))
+            self.load(os.path.join(config.testing_model))
         else:
-            self.load(os.path.join(config.best_model_dir, config.testing_model))
+            self.load(os.path.join(config.testing_model))
 
     def entropy_loss(self, x):
         return torch.sum(-F.softmax(x, 1) * F.log_softmax(x, 1), 1).mean()
@@ -92,8 +92,6 @@ class AuxModel:
             batch_time = AverageMeter()
             losses = AverageMeter()
             top1 = AverageMeter()
-
-            # adjust learning rate
 
             for it, (src_batch, tar_batch) in enumerate(zip(src_loader, itertools.cycle(tar_loader))):
                 t = time.time()
@@ -126,6 +124,7 @@ class AuxModel:
 
                 tar_aux_loss = {}
                 src_aux_loss = {}
+
                 if 'domain_classifier' in self.config.task_names:
                     src_tar_logits = self.model(src_tar_img, 'domain_classifier')
                     tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tar_lbls)
@@ -145,6 +144,7 @@ class AuxModel:
                     tar_aux_loss['stain'] = self.class_loss_func(tar_aux_stain_logits, tar_aux_stain_lbls)
                     src_aux_loss['stain'] = self.class_loss_func(src_aux_stain_logits, src_aux_stain_lbls)
 
+
                 precision1_train, precision2_train = accuracy(src_main_logits, src_cls_lbls, topk=(1, 2))
                 top1.update(precision1_train[0], src_imgs.size(0))
 
@@ -161,6 +161,7 @@ class AuxModel:
                 if i_iter % print_freq == 0:
                     print = ''
                     for task_name in self.config.aux_task_names:
+
                         if task_name == 'domain_classifier':
                             print = print + ' | tar_aux_' + task_name + ': {:.3f} |'
                         else:
@@ -222,7 +223,8 @@ class AuxModel:
                  "model_state": self.model.state_dict(),
                  "optimizer_state": self.optimizer.state_dict(),
                  "scheduler_state": self.scheduler.state_dict(),
-                 "best_scc": self.best_acc
+
+                 "best_acc": self.best_acc,
                  }
         save_path = os.path.join(path, 'model_{:06d}.pth'.format(i_iter))
         self.logger.info('Saving model to %s' % save_path)
@@ -279,8 +281,8 @@ class AuxModel:
             tt.close()
         if self.config.save_output == True:
             soft_labels = soft_labels[1:, :]
-            np.save('pred_cam1234.npy', soft_labels)
-            np.save('true_cam1234.npy', true_labels)
+            np.save('pred_val_mag2.npy', soft_labels)
+            np.save('true__val_mag2.npy', true_labels)
 
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total

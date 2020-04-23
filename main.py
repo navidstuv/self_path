@@ -1,3 +1,4 @@
+
 from configs.configs import config
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = config.gpus
@@ -6,7 +7,6 @@ from configs.configs import config
 from utils.utils import  get_logger
 from utils.utils import set_seed
 from models.model import get_model
-
 from models.all_models import AuxModel
 from data.data_loader import get_loaders
 
@@ -26,12 +26,13 @@ def main():
     model = AuxModel(config, logger)
 
 
-
     src_loader, tar_loader, val_loader, test_loader  = get_loaders(config)
 
 
     if config.mode == 'train':
         model.train(src_loader, tar_loader, val_loader, None)
+    elif config.mode == 'val':
+        model.test(val_loader)
     elif config.mode == 'test':
         model.test(test_loader)
 
@@ -39,3 +40,4 @@ def main():
 if __name__ == '__main__':
     set_seed(config.random_seed)
     main()
+

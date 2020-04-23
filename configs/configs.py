@@ -22,8 +22,6 @@ class DefaultConfigs(object):
     training_num_print_epoch = 1000
 
 
-
-
     #source domain
     src_batch_size = 32
     base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
@@ -54,12 +52,12 @@ class DefaultConfigs(object):
 
 
 
-    random_seed = 22
+    random_seed = 33
     num_epochs = 100
     gpus = '0'
     lr =  0.001
 
-
+    gpus = '0'
 
 
 config = DefaultConfigs()
