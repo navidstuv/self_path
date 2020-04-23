@@ -18,8 +18,8 @@ class DefaultConfigs(object):
     cache_dir = './main_mag_dom1/cache'
     model_dir = './main_mag_dom1/model'
     best_model_dir = './main_mag_dom1/best_model'
-    training_resume = ''
-    training_num_print_epoch = 2000
+    training_resume = 'model_002120.pth'
+    training_num_print_epoch = 20
 
 
     #source domain
@@ -44,7 +44,7 @@ class DefaultConfigs(object):
     #test
     pickle_path_test = './pickle_files/test.pickle'
     budget_test = 'test1'
-    testing_model ='model_028623.pth'
+    testing_model ='model_004241.pth'
 
     save_output = False
     eval_batch_size = 128

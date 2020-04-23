@@ -259,7 +259,7 @@ class AuxModel:
 
                 data = next(val_loader_iterator)
                 data = to_device(data, self.device)
-                imgs, cls_lbls, _, _ = data
+                imgs, cls_lbls, _, _, _, _ = data
                 # Get the inputs
 
                 logits = self.model(imgs, 'main_task')
