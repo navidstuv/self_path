@@ -6,17 +6,20 @@ class DefaultConfigs(object):
     encoder_name = 'resnet50'
     pretrained = False
     exp_name = ' cam-oscc'
-    task_names = ['main_task', 'magnification', 'stain']
-    aux_task_names = ['magnification', 'stain']
-    tasks = {'magnification': {'type': 'classification', 'n_classes': 3}, 'main_task': {'type': 'classification', 'n_classes': 2}, 'stain': {'type': 'classification', 'n_classes': 2}}
-    loss_weight = {'magnification': 0.2, 'main_task': 1}
+    task_names = ['main_task', 'domain_classifier']#['main_task', 'magnification', 'stain']
+    aux_task_names = ['domain_classifier']#['magnification', 'stain']
+    tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
+             'main_task': {'type': 'classification', 'n_classes': 2},
+             'stain': {'type': 'classification', 'n_classes': 2},
+             'domain_classifier': {'type': 'classification', 'n_classes': 2}}
+    loss_weight = {'magnification': 0.2, 'domain_classifier':0.2, 'main_task': 1}
 
     log_dir = './main_mag_stain1/logs'
     cache_dir = './main_mag_stain1/cache'
     model_dir = './main_mag_stain1/model'
     best_model_dir = './main_mag_stain1/best_model'
     training_resume = ''
-    training_num_print_epoch = 1
+    training_num_print_epoch = 1000
 
 
 

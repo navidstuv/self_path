@@ -248,7 +248,6 @@ class Histodata_unlabel_domain_adopt(Dataset):
 
             if 'stain' in config.task_names:
                 stain = np.random.choice(['H', 'E'], 1)
-                main_img = cv2.resize(img, (128, 128), interpolation=cv2.INTER_AREA)
                 if stain=='H':
                     aux_image_stain = rgb2hed(main_img)[: ,: ,0]
                     aux_image_stain = preprocess_input_stain(aux_image_stain)

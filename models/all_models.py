@@ -1,11 +1,9 @@
 import os
 import time
 import itertools
-
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -24,6 +22,7 @@ from utils.utils import to_device, make_inf_dl
 # summary
 from tensorboardX import SummaryWriter
 
+
 class LinearRampdown(_LRScheduler):
     def __init__(self, opt, rampdown_from=1000, rampdown_till=1200, last_epoch=-1):
         self.rampdown_from = rampdown_from
@@ -32,7 +31,7 @@ class LinearRampdown(_LRScheduler):
 
     def ramp(self, e):
         if e > self.rampdown_from:
-            f = (e-self.rampdown_from)/(self.rampdown_till-self.rampdown_from)
+            f = (e - self.rampdown_from) / (self.rampdown_till - self.rampdown_from)
             return 1 - f
         else:
             return 1.0
@@ -40,6 +39,7 @@ class LinearRampdown(_LRScheduler):
     def get_lr(self):
         factor = self.ramp(self.last_epoch)
         return [base_lr * factor for base_lr in self.base_lrs]
+
 
 class AuxModel:
 
@@ -60,7 +60,7 @@ class AuxModel:
 
             lr = config.lr
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
-            self.scheduler = LinearRampdown(self.optimizer , rampdown_from=1000, rampdown_till=1200)
+            self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
 
             self.class_loss_func = nn.CrossEntropyLoss()
 
@@ -95,7 +95,6 @@ class AuxModel:
 
             # adjust learning rate
 
-
             for it, (src_batch, tar_batch) in enumerate(zip(src_loader, itertools.cycle(tar_loader))):
                 t = time.time()
 
@@ -119,34 +118,32 @@ class AuxModel:
                     src_tar_lbls = src_tar_lbls[:src_imgs.size()[0]]
                     src_tar_lbls = src_tar_lbls.long().cuda()
 
-
                 self.optimizer.zero_grad()
 
-                src_main_logits = self.model(src_imgs,'main_task')
+                src_main_logits = self.model(src_imgs, 'main_task')
                 src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
-                loss = src_main_loss* self.config.loss_weight['main_task']
+                loss = src_main_loss * self.config.loss_weight['main_task']
 
                 tar_aux_loss = {}
                 src_aux_loss = {}
                 if 'domain_classifier' in self.config.task_names:
-                    src_tar_logits = self.model(src_tar_img, 'magnification')
+                    src_tar_logits = self.model(src_tar_img, 'domain_classifier')
                     tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tar_lbls)
-                    loss += src_aux_loss['domain_classifier'] * self.config.loss_weight['domain_classifier']
-
+                    loss += tar_aux_loss['domain_classifier'] * self.config.loss_weight['domain_classifier']
                 if 'magnification' in self.config.task_names:
                     tar_aux_mag_logits = self.model(tar_aux_mag_imgs, 'magnification')
                     src_aux_mag_logits = self.model(src_aux_mag_imgs, 'magnification')
                     tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_mag_logits, tar_aux_mag_lbls)
                     src_aux_loss['magnification'] = self.class_loss_func(src_aux_mag_logits, src_aux_mag_lbls)
-                    loss += src_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: magnification weight
-                    loss += tar_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: main task weight
+                    loss += src_aux_loss['magnification'] * self.config.loss_weight[
+                        'magnification']  # todo: magnification weight
+                    loss += tar_aux_loss['magnification'] * self.config.loss_weight[
+                        'magnification']  # todo: main task weight
                 if 'stain' in self.config.task_names:
                     tar_aux_stain_logits = self.model(tar_aux_stain_imgs, 'stain')
                     src_aux_stain_logits = self.model(src_aux_stain_imgs, 'stain')
                     tar_aux_loss['stain'] = self.class_loss_func(tar_aux_stain_logits, tar_aux_stain_lbls)
                     src_aux_loss['stain'] = self.class_loss_func(src_aux_stain_logits, src_aux_stain_lbls)
-
-
 
                 precision1_train, precision2_train = accuracy(src_main_logits, src_cls_lbls, topk=(1, 2))
                 top1.update(precision1_train[0], src_imgs.size(0))
@@ -162,25 +159,25 @@ class AuxModel:
                 i_iter += 1
 
                 if i_iter % print_freq == 0:
-                    print= ''
+                    print = ''
                     for task_name in self.config.aux_task_names:
-                        print = print + 'src_aux_' + task_name +': {:.3f} | tar_aux_' + task_name +': {:.3f}|'
-                    print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} acc: {:.3f}| src_main: {:.3f} |' + print +  '|{:4.2f} s/it'
+                        print = print + 'src_aux_' + task_name + ': {:.3f} | tar_aux_' + task_name + ': {:.3f}|'
+                    print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} acc: {:.3f}| src_main: {:.3f} |' + print + '{:4.2f} s/it'
 
                     src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
                     tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
                     self.logger.info(print_string.format(epoch, i_iter,
-                        losses.avg,
-                        top1.avg,
-                        src_main_loss.item(),
-                        *src_aux_loss_all,
-                        *tar_aux_loss_all,
-                        batch_time.avg))
+                                                         losses.avg,
+                                                         top1.avg,
+                                                         src_main_loss.item(),
+                                                         *src_aux_loss_all,
+                                                         *tar_aux_loss_all,
+                                                         batch_time.avg))
                     self.writer.add_scalar('losses/all_loss', losses.avg, i_iter)
                     self.writer.add_scalar('losses/src_main_loss', src_main_loss, i_iter)
                     for task_name in self.config.aux_task_names:
-                        self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
-                        self.writer.add_scalar('losses/tar_aux_loss_'+task_name, tar_aux_loss[task_name], i_iter)
+                        self.writer.add_scalar('losses/src_aux_loss_' + task_name, src_aux_loss[task_name], i_iter)
+                        self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name], i_iter)
             self.scheduler.step()
 
             # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
@@ -216,11 +213,11 @@ class AuxModel:
 
     def save(self, path, i_iter):
         state = {"iter": i_iter + 1,
-                "model_state": self.model.state_dict(),
-                "optimizer_state": self.optimizer.state_dict(),
-                "scheduler_state": self.scheduler.state_dict(),
-                 "best_scc":self.best_acc
-                }
+                 "model_state": self.model.state_dict(),
+                 "optimizer_state": self.optimizer.state_dict(),
+                 "scheduler_state": self.scheduler.state_dict(),
+                 "best_scc": self.best_acc
+                 }
         save_path = os.path.join(path, 'model_{:06d}.pth'.format(i_iter))
         self.logger.info('Saving model to %s' % save_path)
         torch.save(state, save_path)
@@ -260,7 +257,7 @@ class AuxModel:
 
                 logits = self.model(imgs, 'main_task')
 
-                if self.config.save_output==True:
+                if self.config.save_output == True:
                     smax = nn.Softmax(dim=1)
                     smax_out = smax(logits)
                     soft_labels = np.concatenate((soft_labels, smax_out.cpu().numpy()), axis=0)
@@ -274,12 +271,12 @@ class AuxModel:
                 total += imgs.size(0)
 
             tt.close()
-        if self.config.save_output==True:
+        if self.config.save_output == True:
             soft_labels = soft_labels[1:, :]
             np.save('pred_cam1234.npy', soft_labels)
             np.save('true_cam1234.npy', true_labels)
 
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total
-        self.logger.info('class_acc: {:.2f} %'.format( class_acc))
+        self.logger.info('class_acc: {:.2f} %'.format(class_acc))
         return class_acc
