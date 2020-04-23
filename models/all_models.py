@@ -87,7 +87,6 @@ class AuxModel:
         i_iter = self.start_iter
         start_epoch = i_iter // num_batches
         num_epochs = self.config.num_epochs
-        best_acc = 0
         for epoch in range(start_epoch, num_epochs):
             self.model.train()
             batch_time = AverageMeter()
@@ -106,7 +105,19 @@ class AuxModel:
                 src = to_device(src, self.device)
                 tar = to_device(tar, self.device)
                 src_imgs, src_cls_lbls, src_aux_mag_imgs, src_aux_mag_lbls, src_aux_stain_imgs, src_aux_stain_lbls = src
-                tar_aux_mag_imgs, tar_aux_mag_lbls, tar_aux_stain_imgs, tar_aux_stain_ldls = tar
+                tar_imgs, tar_lbls, tar_aux_mag_imgs, tar_aux_mag_lbls, tar_aux_stain_imgs, tar_aux_stain_lbls = tar
+
+                if 'domain_classifier' in self.config.task_names:
+                    r = torch.randperm(src_imgs.size()[0] + tar_imgs.size()[0])
+                    src_tar_imgs = torch.cat((src_imgs, tar_imgs), dim=0)
+                    src_tar_imgs = src_tar_imgs[r, :, :, :]
+                    src_tar_img = src_tar_imgs[:src_imgs.size()[0], :, :, :]
+
+                    src_tar_lbls = torch.cat((torch.zeros((src_imgs.size()[0])), torch.ones((tar_imgs.size()[0]))),
+                                             dim=0)
+                    src_tar_lbls = src_tar_lbls[r]
+                    src_tar_lbls = src_tar_lbls[:src_imgs.size()[0]]
+                    src_tar_lbls = src_tar_lbls.long().cuda()
 
 
                 self.optimizer.zero_grad()
@@ -117,19 +128,23 @@ class AuxModel:
 
                 tar_aux_loss = {}
                 src_aux_loss = {}
+                if 'domain_classifier' in self.config.task_names:
+                    src_tar_logits = self.model(src_tar_img, 'magnification')
+                    tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tar_lbls)
+                    loss += src_aux_loss['domain_classifier'] * self.config.loss_weight['domain_classifier']
 
-
-                tar_aux_mag_logits = self.model(tar_aux_mag_imgs, 'magnification')
-                src_aux_mag_logits = self.model(src_aux_mag_imgs, 'magnification')
-                tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_mag_logits, tar_aux_mag_lbls)
-                src_aux_loss['magnification'] = self.class_loss_func(src_aux_mag_logits, src_aux_mag_lbls)
-                loss += src_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: magnification weight
-                loss += tar_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: main task weight
-
-                tar_aux_stain_logits = self.model(tar_aux_stain_imgs, 'stain')
-                src_aux_stain_logits = self.model(src_aux_stain_imgs, 'stain')
-                tar_aux_loss['stain'] = self.class_loss_func(tar_aux_stain_logits, tar_aux_stain_ldls)
-                src_aux_loss['stain'] = self.class_loss_func(src_aux_stain_logits, src_aux_stain_lbls)
+                if 'magnification' in self.config.task_names:
+                    tar_aux_mag_logits = self.model(tar_aux_mag_imgs, 'magnification')
+                    src_aux_mag_logits = self.model(src_aux_mag_imgs, 'magnification')
+                    tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_mag_logits, tar_aux_mag_lbls)
+                    src_aux_loss['magnification'] = self.class_loss_func(src_aux_mag_logits, src_aux_mag_lbls)
+                    loss += src_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: magnification weight
+                    loss += tar_aux_loss['magnification'] * self.config.loss_weight['magnification'] # todo: main task weight
+                if 'stain' in self.config.task_names:
+                    tar_aux_stain_logits = self.model(tar_aux_stain_imgs, 'stain')
+                    src_aux_stain_logits = self.model(src_aux_stain_imgs, 'stain')
+                    tar_aux_loss['stain'] = self.class_loss_func(tar_aux_stain_logits, tar_aux_stain_lbls)
+                    src_aux_loss['stain'] = self.class_loss_func(src_aux_stain_logits, src_aux_stain_lbls)
 
 
 
@@ -146,26 +161,26 @@ class AuxModel:
 
                 i_iter += 1
 
-                # if i_iter % print_freq == 0:
-                print= ''
-                for task_name in self.config.aux_task_names:
-                    print = print + 'src_aux_' + task_name +': {:.3f} | tar_aux_' + task_name +': {:.3f}|'
-                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} acc: {:.3f}| src_main: {:.3f} |' + print +  '|{:4.2f} s/it'
+                if i_iter % print_freq == 0:
+                    print= ''
+                    for task_name in self.config.aux_task_names:
+                        print = print + 'src_aux_' + task_name +': {:.3f} | tar_aux_' + task_name +': {:.3f}|'
+                    print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} acc: {:.3f}| src_main: {:.3f} |' + print +  '|{:4.2f} s/it'
 
-                src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
-                tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
-                self.logger.info(print_string.format(epoch, i_iter,
-                    losses.avg,
-                    top1.avg,
-                    src_main_loss.item(),
-                    *src_aux_loss_all,
-                    *tar_aux_loss_all,
-                    batch_time.avg))
-                self.writer.add_scalar('losses/all_loss', losses.avg, i_iter)
-                self.writer.add_scalar('losses/src_main_loss', src_main_loss, i_iter)
-                for task_name in self.config.aux_task_names:
-                    self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
-                    self.writer.add_scalar('losses/tar_aux_loss_'+task_name, tar_aux_loss[task_name], i_iter)
+                    src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
+                    tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
+                    self.logger.info(print_string.format(epoch, i_iter,
+                        losses.avg,
+                        top1.avg,
+                        src_main_loss.item(),
+                        *src_aux_loss_all,
+                        *tar_aux_loss_all,
+                        batch_time.avg))
+                    self.writer.add_scalar('losses/all_loss', losses.avg, i_iter)
+                    self.writer.add_scalar('losses/src_main_loss', src_main_loss, i_iter)
+                    for task_name in self.config.aux_task_names:
+                        self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
+                        self.writer.add_scalar('losses/tar_aux_loss_'+task_name, tar_aux_loss[task_name], i_iter)
             self.scheduler.step()
 
             # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
