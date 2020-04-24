@@ -1,7 +1,7 @@
 
 from configs.configs import config
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = config.gpus
+os.environ["CUDA_VISIBLE_DEVICES"] = str(config.gpus).strip('[]')
 from utils.dirs import create_dirs
 from configs.configs import config
 from utils.utils import  get_logger

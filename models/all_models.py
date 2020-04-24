@@ -52,6 +52,8 @@ class AuxModel:
         # set up model
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = get_model(config)
+        if len(config.gpus)>1:
+            self.model = nn.DataParallel(self.model)
         self.model = self.model.to(self.device)
         self.best_acc = 0
 
@@ -109,7 +111,6 @@ class AuxModel:
                     src_tar_imgs = torch.cat((src_imgs, tar_imgs), dim=0)
                     src_tar_imgs = src_tar_imgs[r, :, :, :]
                     src_tar_img = src_tar_imgs[:src_imgs.size()[0], :, :, :]
-
                     src_tar_lbls = torch.cat((torch.zeros((src_imgs.size()[0])), torch.ones((tar_imgs.size()[0]))),
                                              dim=0)
                     src_tar_lbls = src_tar_lbls[r]
