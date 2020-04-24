@@ -118,9 +118,10 @@ class AuxModel:
 
 
             if i_iter % print_freq == 0:
-                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f}| src_main: {:.3f} |' + '|{:4.2f} s/it'
+                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f}| acc:{:.3f}| src_main: {:.3f} |' + '|{:4.2f} s/it'
                 self.logger.info(print_string.format(epoch, i_iter,
                                                      losses.avg,
+                                                     top1.avg,
                                                      src_main_loss.item(),
                                                      batch_time.avg))
                 self.writer.add_scalar('losses/all_loss', losses.avg, i_iter)
