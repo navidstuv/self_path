@@ -144,6 +144,7 @@ class AuxModel:
                     src_aux_stain_logits = self.model(src_aux_stain_imgs, 'stain')
                     tar_aux_loss['stain'] = self.class_loss_func(tar_aux_stain_logits, tar_aux_stain_lbls)
                     src_aux_loss['stain'] = self.class_loss_func(src_aux_stain_logits, src_aux_stain_lbls)
+                    loss += tar_aux_loss['stain'] * self.config.loss_weight['stain']  # todo: main task weight
 
 
                 precision1_train, precision2_train = accuracy(src_main_logits, src_cls_lbls, topk=(1, 2))
@@ -223,7 +224,6 @@ class AuxModel:
                  "model_state": self.model.state_dict(),
                  "optimizer_state": self.optimizer.state_dict(),
                  "scheduler_state": self.scheduler.state_dict(),
-
                  "best_acc": self.best_acc,
                  }
         save_path = os.path.join(path, 'model_{:06d}.pth'.format(i_iter))
