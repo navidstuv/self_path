@@ -20,9 +20,14 @@ def preprocess_input(x):
     x /= 127
     return x - 1
 
-def preprocess_input_stain(x):
-    x  = x - np.amin(x)
-    x = x/np.amax(x)
+def preprocess_input_stain(x, maxx = 1, minn = -1):
+    if np.amax(x)==0 and np.amin(x)==0 or (np.amax(x)-np.amin(x))==0:
+        std=np.zeros_like(x)
+    else:
+        if (np.amax(x) - np.amin(x)) ==0:
+            print((np.amax(x) - np.amin(x)))
+        std  = (x - np.amin(x))/(np.amax(x) - np.amin(x))
+    x = std*(maxx - minn) + minn
     return x
 
 class Histodata(Dataset):
@@ -243,6 +248,8 @@ class Histodata_unlabel_domain_adopt(Dataset):
                     aux_label_stain = 1
                 aux_image_stain = torch.from_numpy(aux_image_stain).float()
                 aux_image_stain = aux_image_stain.permute(2, 0, 1)
+                aux_label_stain = torch.from_numpy(np.array(aux_label_stain)).long()
+
 
             main_img = preprocess_input (main_img.astype(np.float32))
             main_img = torch.from_numpy(main_img).float()

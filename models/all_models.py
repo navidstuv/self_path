@@ -188,6 +188,8 @@ class AuxModel:
                 tar_aux_loss['stain'] = self.class_loss_func(tar_aux_stain_logits, tar_aux_stain_lbls)
                 src_aux_loss['stain'] = self.class_loss_func(src_aux_stain_logits, src_aux_stain_lbls)
                 loss += tar_aux_loss['stain'] * self.config.loss_weight['stain']  # todo: main task weight
+                loss += src_aux_loss['stain'] * self.config.loss_weight['stain']  # todo: main task weight
+
 
 
             precision1_train, precision2_train = accuracy(src_main_logits, src_cls_lbls, topk=(1, 2))
