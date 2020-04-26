@@ -5,7 +5,6 @@ import torch.nn as nn
 from .encoder import get_resnet
 from .decoders import  UnetDecoder, Classifier
 from torch import optim
-from pytorch_revgrad import RevGrad
 from utils.utils import ReverseLayerF
 
 
@@ -18,7 +17,6 @@ class MultiTaskCNN(nn.Module):
         """
         super(MultiTaskCNN, self).__init__()
         self.base, self.latent_dim  = get_resnet(encoder_name, pretrained=pretrained)
-        self.reverse_grad = RevGrad()
         self.decoders = nn.ModuleDict({})
 
     def forward(self, x, task_name, alpha=1):
