@@ -2,11 +2,11 @@ import os
 class DefaultConfigs(object):
 
 
-    mode = 'train'
+    mode = 'test'
     encoder_name = 'resnet50'
     pretrained = False
     exp_name = ' cam-oscc'
-    task_names = ['main_task', 'stain']#['main_task', 'magnification', 'stain']
+    task_names = ['main_task', 'domain_classifier']#['main_task', 'magnification', 'stain', 'domain_classifier']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'main_task': {'type': 'classification', 'n_classes': 2},
@@ -14,10 +14,10 @@ class DefaultConfigs(object):
              'domain_classifier': {'type': 'classification', 'n_classes': 2}}
     loss_weight = {'magnification': 0.2, 'domain_classifier':0.2, 'main_task': 1, 'stain':0.2}
 
-    log_dir = './main_stain1/logs'
-    cache_dir = './main_stain1/cache'
-    model_dir = './main_stain1/model'
-    best_model_dir = './main_stain1/best_model'
+    log_dir = './test/logs'
+    cache_dir = './test/cache'
+    model_dir = './test/model'
+    best_model_dir = './test/best_model'
     training_resume = ''
     training_num_print_epoch = 20
 
@@ -44,7 +44,7 @@ class DefaultConfigs(object):
     #test
     pickle_path_test = './pickle_files/test.pickle'
     budget_test = 'test1'
-    testing_model ='model_057241.pth'
+    testing_model ='/media/navid/HDD1/Back_up/experiments_log/domain_adoptation/dom2/best_model/model_000001.pth'
 
     save_output = False
     eval_batch_size = 128

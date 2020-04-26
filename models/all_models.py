@@ -82,7 +82,7 @@ class AuxModel:
     def entropy_loss(self, x):
         return torch.sum(-F.softmax(x, 1) * F.log_softmax(x, 1), 1).mean()
 
-    def train_epoch_main_task(self, src_loader, tar_loader, epoch ,i_iter, print_freq):
+    def train_epoch_main_task(self, src_loader, tar_loader, epoch, print_freq):
         self.model.train()
         batch_time = AverageMeter()
         losses = AverageMeter()
@@ -114,25 +114,25 @@ class AuxModel:
             # measure elapsed time
             batch_time.update(time.time() - t)
 
-            i_iter += 1
+            self.start_iter += 1
 
 
-            if i_iter % print_freq == 0:
+            if self.start_iter % print_freq == 0:
                 print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f}| acc:{:.3f}| src_main: {:.3f} |' + '|{:4.2f} s/it'
-                self.logger.info(print_string.format(epoch, i_iter,
+                self.logger.info(print_string.format(epoch, self.start_iter,
                                                      losses.avg,
                                                      top1.avg,
                                                      src_main_loss.item(),
                                                      batch_time.avg))
-                self.writer.add_scalar('losses/all_loss', losses.avg, i_iter)
-                self.writer.add_scalar('losses/src_main_loss', src_main_loss, i_iter)
+                self.writer.add_scalar('losses/all_loss', losses.avg, self.start_iter)
+                self.writer.add_scalar('losses/src_main_loss', src_main_loss, self.start_iter)
         self.scheduler.step()
 
         # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
         # del src_aux_logits, src_class_logits
         # del tar_aux_logits, tar_class_logits
 
-    def train_epoch_all_tasks(self, src_loader, tar_loader, epoch ,i_iter, print_freq):
+    def train_epoch_all_tasks(self, src_loader, tar_loader, epoch, print_freq):
         self.model.train()
         batch_time = AverageMeter()
         losses = AverageMeter()
@@ -203,9 +203,9 @@ class AuxModel:
             # measure elapsed time
             batch_time.update(time.time() - t)
 
-            i_iter += 1
+            self.start_iter += 1
 
-            if i_iter % print_freq == 0:
+            if self.start_iter % print_freq == 0:
                 print = ''
                 for task_name in self.config.aux_task_names:
                     if task_name == 'domain_classifier':
@@ -215,22 +215,22 @@ class AuxModel:
                 print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} |  acc: {:.3f} | src_main: {:.3f} |' + print + '{:4.2f} s/it'
                 src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
                 tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
-                self.logger.info(print_string.format(epoch, i_iter,
+                self.logger.info(print_string.format(epoch, self.start_iter,
                                                      losses.avg,
                                                      top1.avg,
                                                      src_main_loss.item(),
                                                      *src_aux_loss_all,
                                                      *tar_aux_loss_all,
                                                      batch_time.avg))
-                self.writer.add_scalar('losses/all_loss', losses.avg, i_iter)
-                self.writer.add_scalar('losses/src_main_loss', src_main_loss, i_iter)
+                self.writer.add_scalar('losses/all_loss', losses.avg, self.start_iter)
+                self.writer.add_scalar('losses/src_main_loss', src_main_loss, self.start_iter)
                 for task_name in self.config.aux_task_names:
                     if task_name == 'domain_classifier':
                         # self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
-                        self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name], i_iter)
+                        self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name], self.start_iter)
                     else:
-                        self.writer.add_scalar('losses/src_aux_loss_' + task_name, src_aux_loss[task_name], i_iter)
-                        self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name], i_iter)
+                        self.writer.add_scalar('losses/src_aux_loss_' + task_name, src_aux_loss[task_name], self.start_iter)
+                        self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name], self.start_iter)
         self.scheduler.step()
 
         # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
@@ -241,25 +241,24 @@ class AuxModel:
 
         num_batches = len(src_loader)
         print_freq = max(num_batches // self.config.training_num_print_epoch, 1)
-        i_iter = self.start_iter
-        start_epoch = i_iter // num_batches
+        start_epoch = self.start_iter // num_batches
         num_epochs = self.config.num_epochs
         for epoch in range(start_epoch, num_epochs):
             if len(self.config.task_names)==1:
-                self.train_epoch_main_task(src_loader, tar_loader, epoch ,i_iter, print_freq)
+                self.train_epoch_main_task(src_loader, tar_loader, epoch, print_freq)
             else:
-                self.train_epoch_all_tasks(src_loader, tar_loader, epoch ,i_iter, print_freq)
+                self.train_epoch_all_tasks(src_loader, tar_loader, epoch, print_freq)
             # validation
-            self.save(self.config.model_dir, i_iter)
+            self.save(self.config.model_dir, 'last')
 
             if val_loader is not None:
                 self.logger.info('validating...')
                 class_acc = self.test(val_loader)
                 # self.writer.add_scalar('val/aux_acc', class_acc, i_iter)
-                self.writer.add_scalar('val/class_acc', class_acc, i_iter)
+                self.writer.add_scalar('val/class_acc', class_acc, self.start_iter)
                 if class_acc > self.best_acc:
                     self.best_acc = class_acc
-                    self.save(self.config.best_model_dir, i_iter)
+                    self.save(self.config.best_model_dir, 'best')
                     # todo copy current model to best model
                 self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
 
@@ -267,7 +266,7 @@ class AuxModel:
                 self.logger.info('testing...')
                 class_acc = self.test(test_loader)
                 # self.writer.add_scalar('test/aux_acc', class_acc, i_iter)
-                self.writer.add_scalar('test/class_acc', class_acc, i_iter)
+                self.writer.add_scalar('test/class_acc', class_acc, self.start_iter)
                 if class_acc > self.best_acc:
                     self.best_acc = class_acc
                     # todo copy current model to best model
@@ -276,14 +275,14 @@ class AuxModel:
         self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
         self.logger.info('Finished Training.')
 
-    def save(self, path, i_iter):
-        state = {"iter": i_iter + 1,
+    def save(self, path, ext):
+        state = {"iter": self.start_iter + 1,
                  "model_state": self.model.state_dict(),
                  "optimizer_state": self.optimizer.state_dict(),
                  "scheduler_state": self.scheduler.state_dict(),
                  "best_acc": self.best_acc,
                  }
-        save_path = os.path.join(path, 'model_{:06d}.pth'.format(i_iter))
+        save_path = os.path.join(path, f'model_{ext}.pth')
         self.logger.info('Saving model to %s' % save_path)
         torch.save(state, save_path)
 
