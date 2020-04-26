@@ -6,7 +6,7 @@ class DefaultConfigs(object):
     encoder_name = 'resnet50'
     pretrained = False
     exp_name = ' cam-oscc'
-    task_names = ['main_task', 'domain_classifier']#['main_task', 'magnification', 'stain', 'domain_classifier']
+    task_names = ['main_task','stain']#['main_task', 'magnification', 'stain', 'domain_classifier']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'main_task': {'type': 'classification', 'n_classes': 2},
@@ -44,9 +44,9 @@ class DefaultConfigs(object):
     #test
     pickle_path_test = './pickle_files/test.pickle'
     budget_test = 'test1'
-    testing_model ='/media/navid/HDD1/Back_up/experiments_log/domain_adoptation/dom2/best_model/model_000001.pth'
+    testing_model ='/media/navid/HDD1/Back_up/experiments_log/domain_adoptation/stain1/best_model/model_best.pth'
 
-    save_output = False
+    save_output = True
     eval_batch_size = 128
     test_batch_size = 128
 
