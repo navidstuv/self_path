@@ -263,19 +263,19 @@ class AuxModel:
                     self.best_acc = class_acc
                     self.save(self.config.best_model_dir, 'best')
                     # todo copy current model to best model
-                self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
+                self.logger.info('Best validation accuracy: {:.2f} %'.format(self.best_acc))
 
             if test_loader is not None:
                 self.logger.info('testing...')
                 class_acc = self.test(test_loader)
                 # self.writer.add_scalar('test/aux_acc', class_acc, i_iter)
                 self.writer.add_scalar('test/class_acc', class_acc, self.start_iter)
-                if class_acc > self.best_acc:
-                    self.best_acc = class_acc
+                # if class_acc > self.best_acc:
+                #     self.best_acc = class_acc
                     # todo copy current model to best model
-                self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
+                self.logger.info('Best testing accuracy: {:.2f} %'.format(class_acc))
 
-        self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
+        self.logger.info('Best validation accuracy: {:.2f} %'.format(self.best_acc))
         self.logger.info('Finished Training.')
 
     def save(self, path, ext):
