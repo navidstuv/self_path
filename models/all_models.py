@@ -137,9 +137,12 @@ class AuxModel:
         batch_time = AverageMeter()
         losses = AverageMeter()
         top1 = AverageMeter()
-
+        start_steps = epoch * len(src_loader)
+        total_steps = self.config.num_epochs * len(tar_loader)
         for it, (src_batch, tar_batch) in enumerate(zip(src_loader, itertools.cycle(tar_loader))):
             t = time.time()
+            p = float(it + start_steps) / total_steps
+            alpha = 2. / (1. + np.exp(-10 * p)) - 1
 
             self.optimizer.zero_grad()
             src = src_batch
@@ -170,7 +173,7 @@ class AuxModel:
             src_aux_loss = {}
 
             if 'domain_classifier' in self.config.task_names:
-                src_tar_logits = self.model(src_tar_img, 'domain_classifier')
+                src_tar_logits = self.model(src_tar_img, 'domain_classifier' , alpha)
                 tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tar_lbls)
                 loss += tar_aux_loss['domain_classifier'] * self.config.loss_weight['domain_classifier']
             if 'magnification' in self.config.task_names:
@@ -206,13 +209,13 @@ class AuxModel:
             self.start_iter += 1
 
             if self.start_iter % print_freq == 0:
-                print = ''
+                printt = ''
                 for task_name in self.config.aux_task_names:
                     if task_name == 'domain_classifier':
-                        print = print + ' | tar_aux_' + task_name + ': {:.3f} |'
+                        printt = printt + ' | tar_aux_' + task_name + ': {:.3f} |'
                     else:
-                        print = print + 'src_aux_' + task_name + ': {:.3f} | tar_aux_' + task_name + ': {:.3f}'
-                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} |  acc: {:.3f} | src_main: {:.3f} |' + print + '{:4.2f} s/it'
+                        printt = printt + 'src_aux_' + task_name + ': {:.3f} | tar_aux_' + task_name + ': {:.3f}'
+                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} |  acc: {:.3f} | src_main: {:.3f} |' + printt + '{:4.2f} s/it'
                 src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
                 tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
                 self.logger.info(print_string.format(epoch, self.start_iter,
@@ -260,19 +263,19 @@ class AuxModel:
                     self.best_acc = class_acc
                     self.save(self.config.best_model_dir, 'best')
                     # todo copy current model to best model
-                self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
+                self.logger.info('Best validation accuracy: {:.2f} %'.format(self.best_acc))
 
             if test_loader is not None:
                 self.logger.info('testing...')
                 class_acc = self.test(test_loader)
                 # self.writer.add_scalar('test/aux_acc', class_acc, i_iter)
                 self.writer.add_scalar('test/class_acc', class_acc, self.start_iter)
-                if class_acc > self.best_acc:
-                    self.best_acc = class_acc
+                # if class_acc > self.best_acc:
+                #     self.best_acc = class_acc
                     # todo copy current model to best model
-                self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
+                self.logger.info('Best testing accuracy: {:.2f} %'.format(class_acc))
 
-        self.logger.info('Best testing accuracy: {:.2f} %'.format(self.best_acc))
+        self.logger.info('Best validation accuracy: {:.2f} %'.format(self.best_acc))
         self.logger.info('Finished Training.')
 
     def save(self, path, ext):

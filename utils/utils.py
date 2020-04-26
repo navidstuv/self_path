@@ -5,6 +5,7 @@ import logging
 import argparse
 import datetime
 import collections
+from torch.autograd import Function
 import random
 import numpy as np
 import random
@@ -122,6 +123,19 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+class ReverseLayerF(Function):
+
+    @staticmethod
+    def forward(ctx, x, alpha):
+        ctx.alpha = alpha
+
+        return x.view_as(x)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        output = grad_output.neg() * ctx.alpha
+
+        return output, None
 
 def f11_score(precision, recall):
     f1 = 2 * np.divide(np.multiply(precision, recall), np.add(precision, recall))

@@ -30,7 +30,7 @@ def main():
 
 
     if config.mode == 'train':
-        model.train(src_loader, tar_loader, val_loader, None)
+        model.train(src_loader, tar_loader, val_loader, test_loader)
     elif config.mode == 'val':
         model.test(val_loader)
     elif config.mode == 'test':
