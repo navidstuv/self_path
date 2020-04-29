@@ -17,8 +17,8 @@ class Unlabeller():
     def __call__(self, x):
         return -1
 def preprocess_input(x):
-    x /= 127
-    return x - 1
+    x /= 255
+    return x
 
 def preprocess_input_stain(x, maxx = 1, minn = -1):
     if np.amax(x)==0 and np.amin(x)==0 or (np.amax(x)-np.amin(x))==0:
