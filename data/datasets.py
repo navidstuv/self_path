@@ -6,7 +6,7 @@ from tqdm import tqdm
 from data.utils import center_crop
 from skimage.color import rgb2hed, gray2rgb
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import minmax_scale
+from data import stainNorm_Reinhard
 
 from albumentations.augmentations.transforms import CenterCrop
 import os
@@ -36,6 +36,10 @@ class Histodata(Dataset):
         self.unlabeled = unlabeled
         self.path = data_path
         self.augment = augment
+        self.n = stainNorm_Reinhard.Normalizer()
+        i1 = cv2.imread('data/source.png')
+        i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
+        self.n.fit(i1)
         normal_label = []
         tumour_label = []
         normal_path = []
@@ -83,6 +87,7 @@ class Histodata(Dataset):
             if self.augment:
                 img = self.augment(img.shape)(image=img)
                 img = img['image']
+            img = self.n.transform(img)
             img = preprocess_input(img.astype(np.float32))
             img = torch.from_numpy(img).float()
             img = img.permute(2, 0, 1)
@@ -140,7 +145,7 @@ class Histodata(Dataset):
                 aux_image_stain = aux_image_stain.permute(2, 0, 1)
                 aux_label_stain = torch.from_numpy(np.array(aux_label_stain)).long()
 
-
+            main_img = self.n.transform(main_img)
             main_img = preprocess_input (main_img.astype(np.float32))
             main_img = torch.from_numpy(main_img).float()
             main_img = main_img.permute(2, 0, 1)
@@ -166,6 +171,10 @@ class Histodata_unlabel_domain_adopt(Dataset):
         self.unlabeled = unlabeled
         self.path = data_path
         self.augment = augment
+        self.n = stainNorm_Reinhard.Normalizer()
+        i1 = cv2.imread('data/source.png')
+        i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
+        self.n.fit(i1)
         normal_label = []
         tumour_label = []
         normal_path = []
@@ -250,7 +259,7 @@ class Histodata_unlabel_domain_adopt(Dataset):
                 aux_image_stain = aux_image_stain.permute(2, 0, 1)
                 aux_label_stain = torch.from_numpy(np.array(aux_label_stain)).long()
 
-
+            main_img = self.n.transform(main_img)
             main_img = preprocess_input (main_img.astype(np.float32))
             main_img = torch.from_numpy(main_img).float()
             main_img = main_img.permute(2, 0, 1)

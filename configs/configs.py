@@ -6,7 +6,7 @@ class DefaultConfigs(object):
     encoder_name = 'resnet50'
     pretrained = False
     exp_name = ' cam-oscc'
-    task_names = ['main_task','domain_classifier']#['main_task', 'magnification', 'stain', 'domain_classifier']
+    task_names = ['main_task']#['main_task', 'magnification', 'stain', 'domain_classifier']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'main_task': {'type': 'classification', 'n_classes': 2},
@@ -14,22 +14,22 @@ class DefaultConfigs(object):
              'domain_classifier': {'type': 'classification', 'n_classes': 2}}
     loss_weight = {'magnification': 0.2, 'domain_classifier':0.2, 'main_task': 1, 'stain':0.2}
 
-    log_dir = './test/logs'
-    cache_dir = './test/cache'
-    model_dir = './test/model'
-    best_model_dir = './test/best_model'
+    log_dir = './main_normalized1/logs'
+    cache_dir = './main_normalized1/cache'
+    model_dir = './main_normalized1/model'
+    best_model_dir = './main_normalized1/best_model'
     training_resume = ''
     training_num_print_epoch = 1000
 
 
     #source domain
-    src_batch_size = 32
+    src_batch_size = 512
     base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
     pickle_path = 'pickle_files/training_cam.pickle'
     budget = 'training_cam1'
 
     #target domain
-    tar_batch_size = 32
+    tar_batch_size = 512
     base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
     pickle_path_unlabel= './pickle_files/training.pickle'
     budget_unlabel = 'training1'
@@ -42,9 +42,9 @@ class DefaultConfigs(object):
 
 
     #test
-    pickle_path_test = './pickle_files/test.pickle'
-    budget_test = 'test1'
-    testing_model ='/media/navid/HDD1/Back_up/experiments_log/domain_adoptation/stain1/best_model/model_best.pth'
+    pickle_path_test = './pickle_files/test_large.pickle'
+    budget_test = 'test_large1'
+    testing_model ='/media/navid/HDD1/Back_up/experiments_log/domain_adoptation/main1/best_model/model_000000.pth'
 
     save_output = True
     eval_batch_size = 128
