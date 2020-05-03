@@ -79,7 +79,7 @@ class Normalizer(object):
         II = ut.standardize_brightness(I)
         I1, I2, I3 = lab_split(II)
         means, stds = get_mean_std(II)
-        if stds[0]==0:
+        if stds[0]==0 or stds[1]==0 or stds[2]==0:
             return I
         else:
             norm1 = ((I1 - means[0]) * (self.target_stds[0] / stds[0])) + self.target_means[0]
