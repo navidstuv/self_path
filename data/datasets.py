@@ -36,10 +36,11 @@ class Histodata(Dataset):
         self.unlabeled = unlabeled
         self.path = data_path
         self.augment = augment
-        self.n = stainNorm_Reinhard.Normalizer()
-        i1 = cv2.imread('data/source.png')
-        i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
-        self.n.fit(i1)
+        if config.stain_normalized:
+            self.n = stainNorm_Reinhard.Normalizer()
+            i1 = cv2.imread('data/source.png')
+            i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
+            self.n.fit(i1)
         normal_label = []
         tumour_label = []
         normal_path = []
@@ -120,7 +121,8 @@ class Histodata(Dataset):
                 if mag=='10x':
                     aux_image_mag = cv2.resize(img, (128, 128), interpolation=cv2.INTER_AREA)
                     aux_label_mag = 2
-                aux_image_mag = self.n.transform(aux_image_mag)
+                if config.stain_normalized:
+                    aux_image_mag = self.n.transform(aux_image_mag)
                 aux_image_mag = preprocess_input(aux_image_mag.astype(np.float32))
                 aux_image_mag = torch.from_numpy(aux_image_mag).float()
                 aux_image_mag = aux_image_mag.permute(2, 0, 1)
@@ -144,8 +146,8 @@ class Histodata(Dataset):
                 aux_image_stain = torch.from_numpy(aux_image_stain).float()
                 aux_image_stain = aux_image_stain.permute(2, 0, 1)
                 aux_label_stain = torch.from_numpy(np.array(aux_label_stain)).long()
-
-            main_img = self.n.transform(main_img)
+            if config.stain_normalized:
+                main_img = self.n.transform(main_img)
             main_img = preprocess_input (main_img.astype(np.float32))
             main_img = torch.from_numpy(main_img).float()
             main_img = main_img.permute(2, 0, 1)
@@ -171,9 +173,10 @@ class Histodata_unlabel_domain_adopt(Dataset):
         self.unlabeled = unlabeled
         self.path = data_path
         self.augment = augment
-        self.n = stainNorm_Reinhard.Normalizer()
-        i1 = cv2.imread('data/source.png')
-        i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
+        if config.stain_normalized:
+            self.n = stainNorm_Reinhard.Normalizer()
+            i1 = cv2.imread('data/source.png')
+            i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
         self.n.fit(i1)
         normal_label = []
         tumour_label = []
@@ -236,7 +239,9 @@ class Histodata_unlabel_domain_adopt(Dataset):
                 if self.augment:
                     aux_image_mag = self.augment(aux_image_mag.shape)(image=aux_image_mag)
                     aux_image_mag = aux_image_mag['image']
-                aux_image_mag = self.n.transform(aux_image_mag)
+
+                if config.stain_normalized:
+                    aux_image_mag = self.n.transform(aux_image_mag)
                 aux_image_mag = preprocess_input(aux_image_mag.astype(np.float32))
                 aux_image_mag = torch.from_numpy(aux_image_mag).float()
                 aux_image_mag = aux_image_mag.permute(2, 0, 1)
@@ -258,8 +263,8 @@ class Histodata_unlabel_domain_adopt(Dataset):
                 aux_image_stain = torch.from_numpy(aux_image_stain).float()
                 aux_image_stain = aux_image_stain.permute(2, 0, 1)
                 aux_label_stain = torch.from_numpy(np.array(aux_label_stain)).long()
-
-            main_img = self.n.transform(main_img)
+            if config.stain_normalized:
+                main_img = self.n.transform(main_img)
             main_img = preprocess_input (main_img.astype(np.float32))
             main_img = torch.from_numpy(main_img).float()
             main_img = main_img.permute(2, 0, 1)
