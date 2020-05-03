@@ -2,7 +2,7 @@ import os
 class DefaultConfigs(object):
 
 
-    mode = 'train'
+    mode = 'test'
     encoder_name = 'resnet50'
     pretrained = False
     exp_name = ' cam-oscc'
@@ -19,7 +19,7 @@ class DefaultConfigs(object):
     model_dir = './main_normalized1/model'
     best_model_dir = './main_normalized1/best_model'
     training_resume = ''
-    training_num_print_epoch = 1000
+    training_num_print_epoch = 20
 
 
     #source domain
@@ -42,9 +42,9 @@ class DefaultConfigs(object):
 
 
     #test
-    pickle_path_test = './pickle_files/test_large.pickle'
-    budget_test = 'test_large1'
-    testing_model ='/media/navid/HDD1/Back_up/experiments_log/domain_adoptation/main1/best_model/model_000000.pth'
+    pickle_path_test = './pickle_files/test.pickle'
+    budget_test = 'test1'
+    testing_model ='/media/navid/HDD1/Back_up/git-files/Multi_task_domain_adapt/main_normalized1/best_model/model_best.pth'
 
     save_output = True
     eval_batch_size = 128

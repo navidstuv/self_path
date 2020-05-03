@@ -120,7 +120,7 @@ class Histodata(Dataset):
                 if mag=='10x':
                     aux_image_mag = cv2.resize(img, (128, 128), interpolation=cv2.INTER_AREA)
                     aux_label_mag = 2
-
+                aux_image_mag = self.n.transform(aux_image_mag)
                 aux_image_mag = preprocess_input(aux_image_mag.astype(np.float32))
                 aux_image_mag = torch.from_numpy(aux_image_mag).float()
                 aux_image_mag = aux_image_mag.permute(2, 0, 1)
@@ -236,7 +236,7 @@ class Histodata_unlabel_domain_adopt(Dataset):
                 if self.augment:
                     aux_image_mag = self.augment(aux_image_mag.shape)(image=aux_image_mag)
                     aux_image_mag = aux_image_mag['image']
-
+                aux_image_mag = self.n.transform(aux_image_mag)
                 aux_image_mag = preprocess_input(aux_image_mag.astype(np.float32))
                 aux_image_mag = torch.from_numpy(aux_image_mag).float()
                 aux_image_mag = aux_image_mag.permute(2, 0, 1)
