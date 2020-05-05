@@ -56,9 +56,9 @@ def get_medium_augmentations(image_size):
         #                         value=0,p=0.5),
         #     A.NoOp()
         # ]),
-        # A.RandomSizedCrop(min_max_height=(int(image_size[0] * 0.85), image_size[0]),
-        #                   height=image_size[0],
-        #                   width=image_size[1], p=0.3),
+        A.RandomSizedCrop(min_max_height=(int(image_size[0] * 0.85), image_size[0]),
+                          height=image_size[0],
+                          width=image_size[1], p=0.3),
         # A.OneOf([
         #     A.RandomBrightnessContrast(brightness_limit=0.3,
         #                                contrast_limit=0.4),
@@ -67,18 +67,18 @@ def get_medium_augmentations(image_size):
         #     A.RandomGamma(gamma_limit=(50, 150)),
         #     A.NoOp()
         # ]),
-        # A.OneOf([
-        #     A.MotionBlur(blur_limit=3),
-        #     A.GaussianBlur(),
-        #     A.GaussNoise(),
-        #     A.NoOp()
-        # ]),
-        # A.OneOf([
-        #     A.RGBShift(r_shift_limit=5, b_shift_limit=5, g_shift_limit=5),
-        #     A.HueSaturationValue(hue_shift_limit=1,
-        #                          sat_shift_limit=1),
-        #     A.NoOp()
-        # ]),
+        A.OneOf([
+            A.MotionBlur(blur_limit=3),
+            A.GaussianBlur(),
+            A.GaussNoise(),
+            A.NoOp()
+        ]),
+        A.OneOf([
+            A.RGBShift(r_shift_limit=5, b_shift_limit=5, g_shift_limit=5),
+            A.HueSaturationValue(hue_shift_limit=1,
+                                 sat_shift_limit=1),
+            A.NoOp()
+        ]),
         A.HorizontalFlip(p=0.5),
         A.VerticalFlip(p=0.5)
     ])
