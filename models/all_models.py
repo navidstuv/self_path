@@ -340,8 +340,8 @@ class AuxModel:
             tt.close()
         if self.config.save_output == True:
             soft_labels = soft_labels[1:, :]
-            np.save('pred_test_main1.npy', soft_labels)
-            np.save('true_test_main1.npy', true_labels)
+            np.save('pred_test_stain1.npy', soft_labels)
+            np.save('true_test_stain1.npy', true_labels)
 
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total

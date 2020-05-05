@@ -248,7 +248,6 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
     print('f1 score is: {}'.format(F1))
     print('Accuracy score is: {}'.format(ACC))
     print('Auc is: {}'.format(Auc))
-    print(f'averag precision: {average_precision}')
     print('conf_matrix is: {}'.format(conf_matrix))
     print('Precision is {}'.format(precision))
     print('recall is {}'.format(recall))
