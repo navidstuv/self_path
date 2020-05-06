@@ -342,7 +342,6 @@ class AuxModel:
             soft_labels = soft_labels[1:, :]
             np.save('pred_'+self.config.mode+'main2.npy', soft_labels)
             np.save('true_'+self.config.mode+'main2.npy', true_labels)
-
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total
         self.logger.info('class_acc: {:.2f} %'.format(class_acc))
