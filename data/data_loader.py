@@ -4,11 +4,16 @@ from data.augmentations import get_medium_augmentations
 
 
 def get_loaders(config):
+    if config.augmenttion == True:
+        augmentation = get_medium_augmentations
+    else:
+        augmentation = False
 
-    lab_train_generator = Histodata(config.base_data_path, config.pickle_path, config.budget, unlabeled=False , augment = get_medium_augmentations)
+
+    lab_train_generator = Histodata(config.base_data_path, config.pickle_path, config.budget, unlabeled=False , augment = augmentation)
 
     unlab_train_generator = Histodata_unlabel_domain_adopt(config.base_data_path_unlabel, config.pickle_path_unlabel,
-                                                           config.budget_unlabel, unlabeled = True, augment= get_medium_augmentations)
+                                                           config.budget_unlabel, unlabeled = True, augment= augmentation)
 
     valid_generator = Histodata(config.base_data_path , config.pickle_path_valid, config.budget_valid, unlabeled = False)
     test_generator = Histodata(config.base_data_path_unlabel , config.pickle_path_test, config.budget_test, unlabeled = False)
