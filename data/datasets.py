@@ -177,7 +177,7 @@ class Histodata_unlabel_domain_adopt(Dataset):
             self.n = stainNorm_Reinhard.Normalizer()
             i1 = cv2.imread('data/source.png')
             i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
-        self.n.fit(i1)
+            self.n.fit(i1)
         normal_label = []
         tumour_label = []
         normal_path = []
