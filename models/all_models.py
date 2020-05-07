@@ -17,7 +17,7 @@ from schedulers import get_scheduler
 from optimizers import get_optimizer
 from models.model import get_model
 from utils.metrics import AverageMeter, accuracy
-from utils.utils import to_device, make_inf_dl
+from utils.utils import to_device, make_inf_dl, save_output_img
 
 # summary
 from tensorboardX import SummaryWriter
@@ -306,7 +306,7 @@ class AuxModel:
         val_loader_iterator = iter(val_loader)
         num_val_iters = len(val_loader)
         tt = tqdm(range(num_val_iters), total=num_val_iters, desc="Validating")
-
+        kk = 1
         aux_correct = 0
         class_correct = 0
         total = 0
@@ -329,6 +329,22 @@ class AuxModel:
                     smax_out = smax(logits)
                     soft_labels = np.concatenate((soft_labels, smax_out.cpu().numpy()), axis=0)
                     true_labels = np.append(true_labels, cls_lbls.cpu().numpy())
+                    pred_trh = smax_out.cpu().numpy()[:,1]
+                    pred_trh[pred_trh>=0.5] = 1
+                    pred_trh[pred_trh < 0.5] = 0
+                    compare = cls_lbls.cpu().numpy()-pred_trh
+                    FP_idx = np.where(compare==-1)
+                    FN_idx = np.where(compare==1)
+                    FP_imgs = imgs.cpu().numpy()[FP_idx,...]
+                    FN_imgs = imgs.cpu().numpy()[FN_idx, ...]
+                    save_output_img(FP_imgs[0,...],'FP_images', 'FP', kk*imgs.shape[0])
+                    save_output_img(FN_imgs[0,...], 'FN_images', 'FN', kk * imgs.shape[0])
+                    kk+=1
+
+
+
+
+
 
                 _, cls_pred = logits.max(dim=1)
                 # _, aux_pred = aux_logits.max(dim=1)
@@ -340,8 +356,8 @@ class AuxModel:
             tt.close()
         if self.config.save_output == True:
             soft_labels = soft_labels[1:, :]
-            np.save('pred_'+self.config.mode+'main2.npy', soft_labels)
-            np.save('true_'+self.config.mode+'main2.npy', true_labels)
+            np.save('pred_'+self.config.mode+'_main3.npy', soft_labels)
+            np.save('true_'+self.config.mode+'_main3.npy', true_labels)
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total
         self.logger.info('class_acc: {:.2f} %'.format(class_acc))

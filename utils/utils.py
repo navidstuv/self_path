@@ -7,6 +7,7 @@ import datetime
 import collections
 from torch.autograd import Function
 import random
+from skimage.io import imsave
 import numpy as np
 import random
 from sklearn.metrics import precision_recall_curve, precision_score, recall_score, \
@@ -253,3 +254,36 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
     print('Precision is {}'.format(precision))
     print('recall is {}'.format(recall))
 
+def show_images(images, iter, cols=1, titles=None):
+    """Display a list of images in a single figure with matplotlib.
+
+    Parameters
+    ---------
+    images: List of np.arrays compatible with plt.imshow.
+
+    cols (Default = 1): Number of columns in figure (number of rows is
+                        set to np.ceil(n_images/float(cols))).
+
+    titles: List of titles corresponding to each image. Must have
+            the same length as titles.
+    """
+    assert ((titles is None) or (len(images) == len(titles)))
+    n_images = len(images)
+    if titles is None: titles = ['Image (%d)' % i for i in range(1, n_images + 1)]
+    fig = plt.figure(figsize=(10, 10))
+    for n, (image, title) in enumerate(zip(images, titles)):
+        a = fig.add_subplot(cols, np.ceil(n_images / float(cols)), n + 1)
+        if image.ndim == 2:
+            plt.gray()
+        plt.imshow(image)
+        plt.axis('off')
+        a.set_title(str(title))
+    # fig.set_size_inches(np.array(fig.get_size_inches()) * n_images)
+    plt.show()
+    plt.savefig('../patches/'+str(iter)+'.png')
+    # plt.close()
+def save_output_img(imgs,path, prefix, num):
+    if not os.path.exists(path):
+        os.mkdir(path)
+    for i in range(imgs.shape[0]):
+        imsave(os.path.join(path, prefix + '_' + str(i + 1 + num ) + '.png'), np.transpose(imgs[i, :, :, :], (1, 2, 0)) )

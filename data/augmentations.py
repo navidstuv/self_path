@@ -67,18 +67,18 @@ def get_medium_augmentations(image_size):
         #     A.RandomGamma(gamma_limit=(50, 150)),
         #     A.NoOp()
         # ]),
-        # A.OneOf([
+        A.OneOf([
         #     A.MotionBlur(blur_limit=3),
         #     A.GaussianBlur(),
-        #     A.GaussNoise(),
-        #     A.NoOp()
-        # ]),
-        # A.OneOf([
-        #     A.RGBShift(r_shift_limit=5, b_shift_limit=5, g_shift_limit=5),
-        #     A.HueSaturationValue(hue_shift_limit=1,
-        #                          sat_shift_limit=1),
-        #     A.NoOp()
-        # ]),
+            A.GaussNoise(),
+            A.NoOp()
+        ]),
+        A.OneOf([
+            A.RGBShift(r_shift_limit=5, b_shift_limit=5, g_shift_limit=5),
+            A.HueSaturationValue(hue_shift_limit=5,
+                                 sat_shift_limit=5),
+            A.NoOp()
+        ]),
         A.HorizontalFlip(p=0.5),
         A.VerticalFlip(p=0.5)
     ])

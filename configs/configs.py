@@ -2,12 +2,13 @@ import os
 class DefaultConfigs(object):
 
 
-    mode = 'val'
+    mode = 'test'
     encoder_name = 'resnet50'
     pretrained = False
     stain_normalized = True
+    augmentation = True
     exp_name = ' cam-oscc'
-    task_names = ['main_task',]#['main_task', 'magnification', 'stain', 'domain_classifier']
+    task_names = ['main_task','magnification', 'domain_classifier']#['main_task', 'magnification', 'stain', 'domain_classifier']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'main_task': {'type': 'classification', 'n_classes': 2},
@@ -25,27 +26,27 @@ class DefaultConfigs(object):
 
     #source domain
     src_batch_size = 128
+    # base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
     base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
     pickle_path = 'pickle_files/training_cam.pickle'
     budget = 'training_cam1'
 
     #target domain
     tar_batch_size = 128
+    # base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
     base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
     pickle_path_unlabel= './pickle_files/training.pickle'
     budget_unlabel = 'training1'
 
-
-
-    #validation
+    # validation
     pickle_path_valid = './pickle_files/validation_cam.pickle'
     budget_valid = 'validation_cam1'
 
-
-    #test
+    # test
+    # base_data_path_unlabel_new = 'G://test_camelyon'
     pickle_path_test = './pickle_files/test.pickle'
     budget_test = 'test1'
-    testing_model ='main_normalized1/best_model/model_best.pth'
+    testing_model ='/media/navid/HDD1/Back_up/experiments_log/domain_adoptation/main_mag_dom_normalized3/best_model/model_best.pth'
 
     save_output = True
     eval_batch_size = 128
