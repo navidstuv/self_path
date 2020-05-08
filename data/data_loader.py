@@ -4,7 +4,7 @@ from data.augmentations import get_medium_augmentations
 
 
 def get_loaders(config):
-    if config.augmenttion == True:
+    if config.augmentation == True:
         augmentation = get_medium_augmentations
     else:
         augmentation = False
