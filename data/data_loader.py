@@ -1,7 +1,7 @@
 from data.datasets import Histodata, Histodata_unlabel_domain_adopt
 from torch.utils.data import DataLoader
 from data.augmentations import get_medium_augmentations
-
+from utils.utils import worker_init_fn
 
 def get_loaders(config):
     if config.augmentation == True:
@@ -18,12 +18,12 @@ def get_loaders(config):
     valid_generator = Histodata(config.base_data_path , config.pickle_path_valid, config.budget_valid, unlabeled = False)
     test_generator = Histodata(config.base_data_path_unlabel , config.pickle_path_test, config.budget_test, unlabeled = False)
 
-    src_loader = DataLoader(lab_train_generator, batch_size=config.src_batch_size, shuffle=True, num_workers=20,
-                               pin_memory=True)
+    src_loader = DataLoader(lab_train_generator, batch_size=config.src_batch_size, shuffle=True, num_workers=10,
+                               pin_memory=True, worker_init_fn = worker_init_fn)
     tar_loader = DataLoader(unlab_train_generator, batch_size=config.tar_batch_size , shuffle=True,
-                                 num_workers=20, pin_memory=True)
-    val_loader = DataLoader(valid_generator, batch_size=config.eval_batch_size, shuffle=False, num_workers=20, pin_memory=True)
-    test_loader = DataLoader(test_generator, batch_size=config.test_batch_size, shuffle=False, num_workers=20, pin_memory=True)
+                                 num_workers=10, pin_memory=True, worker_init_fn = worker_init_fn)
+    val_loader = DataLoader(valid_generator, batch_size=config.eval_batch_size, shuffle=False, num_workers=10, pin_memory=True)
+    test_loader = DataLoader(test_generator, batch_size=config.test_batch_size, shuffle=False, num_workers=10, pin_memory=True)
 
 
     return src_loader, tar_loader, val_loader, test_loader
