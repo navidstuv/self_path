@@ -287,3 +287,6 @@ def save_output_img(imgs,path, prefix, num):
         os.mkdir(path)
     for i in range(imgs.shape[0]):
         imsave(os.path.join(path, prefix + '_' + str(i + 1 + num ) + '.png'), np.transpose(imgs[i, :, :, :], (1, 2, 0)) )
+
+def worker_init_fn(worker_id):
+    np.random.seed(np.random.get_state()[1][0] + worker_id)
