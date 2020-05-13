@@ -36,7 +36,7 @@ class DefaultConfigs(object):
     # base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
     base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
     pickle_path_unlabel= './pickle_files/training.pickle'
-    budget_unlabel = 'training1'
+    budget_unlabel = 'training1t'
 
     # validation
     pickle_path_valid = './pickle_files/validation_cam.pickle'
