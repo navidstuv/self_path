@@ -65,6 +65,7 @@ class AuxModel:
             self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
 
             self.class_loss_func = nn.CrossEntropyLoss()
+            self.pixel_loss = nn.L1Loss()
 
             self.start_iter = 0
 
@@ -149,8 +150,8 @@ class AuxModel:
             tar = tar_batch
             src = to_device(src, self.device)
             tar = to_device(tar, self.device)
-            src_imgs, src_cls_lbls, src_aux_mag_imgs, src_aux_mag_lbls, src_aux_jigsaw_imgs, src_aux_jigsaw_lbls = src
-            tar_imgs, tar_lbls, tar_aux_mag_imgs, tar_aux_mag_lbls, tar_aux_jigsaw_imgs, tar_aux_jigsaw_lbls = tar
+            src_imgs, src_cls_lbls, src_aux_mag_imgs, src_aux_mag_lbls, src_aux_jigsaw_imgs, src_aux_jigsaw_lbls, src_aux_hem_lbls = src
+            tar_imgs, tar_lbls, tar_aux_mag_imgs, tar_aux_mag_lbls, tar_aux_jigsaw_imgs, tar_aux_jigsaw_lbls, tar_aux_hem_lbls = tar
 
             if 'domain_classifier' in self.config.task_names:
                 r = torch.randperm(src_imgs.size()[0] + tar_imgs.size()[0])
@@ -168,6 +169,7 @@ class AuxModel:
             src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
             loss = src_main_loss * self.config.loss_weight['main_task']
 
+            #entroy loss for target
             tar_main_logits = self.model(tar_imgs, 'main_task')
             tar_main_loss = self.entropy_loss(tar_main_logits)
             loss+=tar_main_loss
@@ -195,6 +197,14 @@ class AuxModel:
                 src_aux_loss['jigsaw'] = self.class_loss_func(src_aux_jigsaw_logits, src_aux_jigsaw_lbls)
                 loss += tar_aux_loss['jigsaw'] * self.config.loss_weight['jigsaw']  # todo: main task weight
                 loss += src_aux_loss['jigsaw'] * self.config.loss_weight['jigsaw']  # todo: main task weight
+
+            if 'hematoxylin' in self.config.task_names:
+                tar_aux_hem_logits = self.model(tar_imgs, 'hematoxylin')
+                src_aux_hem_logits = self.model(src_imgs, 'hematoxylin')
+                tar_aux_loss['hematoxylin'] = self.pixel_loss(tar_aux_hem_logits, tar_aux_hem_lbls)
+                src_aux_loss['hematoxylin'] = self.pixel_loss(src_aux_hem_logits, src_aux_hem_lbls)
+                loss += tar_aux_loss['hematoxylin'] * self.config.loss_weight['hematoxylin']  # todo: main task weight
+                loss += src_aux_loss['hematoxylin'] * self.config.loss_weight['hematoxylin']  # todo: main task weight
 
 
 

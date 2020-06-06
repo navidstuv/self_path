@@ -2,7 +2,7 @@
 Multi-Task Histology model
 """
 import torch.nn as nn
-from .encoder import get_resnet
+from .encoder import get_resnet, ResNet
 from .decoders import  UnetDecoder, Classifier
 from torch import optim
 from utils.utils import ReverseLayerF
@@ -16,9 +16,11 @@ class MultiTaskCNN(nn.Module):
         """
         """
         super(MultiTaskCNN, self).__init__()
-        self.base, self.latent_dim  = get_resnet(encoder_name, pretrained=pretrained)
+        # self.base, self.latent_dim  = get_resnet(encoder_name, pretrained=pretrained)
+        # self.decoders = nn.ModuleDict({})
+        self.bn = nn.BatchNorm2d(3)
+        self.base = ResNet(encoder_name, pretrained=pretrained)
         self.decoders = nn.ModuleDict({})
-
     def forward(self, x, task_name, alpha=1):
         """
         Forward pass through the model
@@ -26,18 +28,17 @@ class MultiTaskCNN(nn.Module):
         :param task_id: task index number
         :return:
         """
-        x = self.base(x)
+        x = self.bn(x)
+        layer0, layer1, layer2, layer3, layer4 = self.base(x)
         if task_name=='domain_classifier':
-            if isinstance(self.decoders[task_name], UnetDecoder):
-                out = self.decoders[task_name](x, layer0, layer1, layer2, layer3, layer4)
             if isinstance(self.decoders[task_name], Classifier):
-                reversed_input = ReverseLayerF.apply(x, alpha)
+                reversed_input = ReverseLayerF.apply(layer4, alpha)
                 out = self.decoders[task_name](reversed_input)
         else:
             if isinstance(self.decoders[task_name], UnetDecoder):
                 out = self.decoders[task_name](x, layer0, layer1, layer2, layer3, layer4)
             if isinstance(self.decoders[task_name], Classifier):
-                out = self.decoders[task_name](x)
+                out = self.decoders[task_name](layer4)
         return out
 
 
@@ -50,13 +51,13 @@ def get_model(config):
     :return:
     """
     model = MultiTaskCNN(encoder_name=config.encoder_name, pretrained=config.pretrained)
-    latent_dim = model.latent_dim
+    latent_dim = model.base.latent_dim
     for task_name in config.task_names:
         task_dictionary = config.tasks[task_name]
         task_type = task_dictionary['type']
         n_classes = task_dictionary['n_classes']
 
-        if task_type == 'segmentation':
+        if task_type == 'pixel':
             model.decoders.update({task_name:UnetDecoder(n_classes,
                                             model.base.multiple)})
         if task_type == 'classification':
