@@ -15,13 +15,13 @@ def get_loaders(config):
     unlab_train_generator = Histodata_unlabel_domain_adopt(config.base_data_path_unlabel, config.pickle_path_unlabel,
                                                            config.budget_unlabel, unlabeled = True, augment= augmentation)
 
-    valid_generator = Histodata(config.base_data_path , config.pickle_path_valid, config.budget_valid, unlabeled = False)
+    valid_generator = Histodata(config.base_data_path_unlabel , config.pickle_path_valid, config.budget_valid, unlabeled = False)
     test_generator = Histodata(config.base_data_path_unlabel , config.pickle_path_test, config.budget_test, unlabeled = False)
 
     src_loader = DataLoader(lab_train_generator, batch_size=config.src_batch_size, shuffle=True, num_workers=5,
-                               pin_memory=True)
+                               pin_memory=True, worker_init_fn = worker_init_fn)
     tar_loader = DataLoader(unlab_train_generator, batch_size=config.tar_batch_size , shuffle=True,
-                                 num_workers=5, pin_memory=True)
+                                 num_workers=5, pin_memory=True, worker_init_fn = worker_init_fn)
     val_loader = DataLoader(valid_generator, batch_size=config.eval_batch_size, shuffle=False, num_workers=5, pin_memory=True)
     test_loader = DataLoader(test_generator, batch_size=config.test_batch_size, shuffle=False, num_workers=5, pin_memory=True)
 

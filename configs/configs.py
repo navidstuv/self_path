@@ -20,7 +20,7 @@ class DefaultConfigs(object):
     cache_dir = './testtt/cache'
     model_dir = './testtt/model'
     best_model_dir = './testtt/best_model'
-    training_resume = ''
+    training_resume = 'model_last.pth'
     training_num_print_epoch = 20
 
 
@@ -39,8 +39,8 @@ class DefaultConfigs(object):
     budget_unlabel = 'training1'
 
     # validation
-    pickle_path_valid = './pickle_files/validation_cam.pickle'
-    budget_valid = 'validation_cam1'
+    pickle_path_valid = './pickle_files/validation.pickle'
+    budget_valid = 'validation1'
 
     # test
     # base_data_path_unlabel_new = 'G://test_camelyon'
@@ -48,7 +48,7 @@ class DefaultConfigs(object):
     budget_test = 'test1'
     testing_model ='/media/navid/HDD1/Back_up/experiments_log/domain_adoptation/main_mag_dom_normalized3/best_model/model_best.pth'
 
-    save_output = True
+    save_output = False
     eval_batch_size = 128
     test_batch_size = 128
 
