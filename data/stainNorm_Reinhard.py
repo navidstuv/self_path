@@ -59,7 +59,31 @@ def get_mean_std(I):
 
 
 ### Main class ###
-
+def get_stain_matrix(I, beta=0.15, alpha=1):
+    """
+    Get stain matrix (2x3)
+    :param I:
+    :param beta:
+    :param alpha:
+    :return:
+    """
+    OD = ut.RGB_to_OD(I).reshape((-1, 3))
+    OD = (OD[(OD > beta).any(axis=1), :])
+    _, V = np.linalg.eigh(np.cov(OD, rowvar=False))
+    V = V[:, [2, 1]]
+    if V[0, 0] < 0: V[:, 0] *= -1
+    if V[0, 1] < 0: V[:, 1] *= -1
+    That = np.dot(OD, V)
+    phi = np.arctan2(That[:, 1], That[:, 0])
+    minPhi = np.percentile(phi, alpha)
+    maxPhi = np.percentile(phi, 100 - alpha)
+    v1 = np.dot(V, np.array([np.cos(minPhi), np.sin(minPhi)]))
+    v2 = np.dot(V, np.array([np.cos(maxPhi), np.sin(maxPhi)]))
+    if v1[0] > v2[0]:
+        HE = np.array([v1, v2])
+    else:
+        HE = np.array([v2, v1])
+    return ut.normalize_rows(HE)
 class Normalizer(object):
     """
     A stain normalization object
@@ -86,3 +110,12 @@ class Normalizer(object):
             norm2 = ((I2 - means[1]) * (self.target_stds[1] / stds[1])) + self.target_means[1]
             norm3 = ((I3 - means[2]) * (self.target_stds[2] / stds[2])) + self.target_means[2]
             return merge_back(norm1, norm2, norm3)
+    def hematoxylin(self, I):
+        I = ut.standardize_brightness(I)
+        h, w, c = I.shape
+        stain_matrix_source = get_stain_matrix(I)
+        source_concentrations = ut.get_concentrations(I, stain_matrix_source)
+        H = source_concentrations[:, 0].reshape(h, w)
+        H = np.exp(-1 * H)
+        return H
+

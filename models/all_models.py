@@ -168,6 +168,10 @@ class AuxModel:
             src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
             loss = src_main_loss * self.config.loss_weight['main_task']
 
+            tar_main_logits = self.model(tar_imgs, 'main_task')
+            tar_main_loss = self.entropy_loss(tar_main_logits)
+            loss+=tar_main_loss
+
             tar_aux_loss = {}
             src_aux_loss = {}
 

@@ -7,7 +7,6 @@ from data.utils import center_crop, jigsaw_res
 from skimage.color import rgb2hed, gray2rgb
 import matplotlib.pyplot as plt
 from data import stainNorm_Reinhard
-from data import stainNorm_Vahadane
 
 from albumentations.augmentations.transforms import CenterCrop
 import os

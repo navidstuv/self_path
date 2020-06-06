@@ -9,7 +9,8 @@ from utils.utils import set_seed
 from models.model import get_model
 from models.all_models import AuxModel
 from data.data_loader import get_loaders
-
+import warnings
+warnings.filterwarnings("ignore")
 def main():
 
     # create the experiments dirs
