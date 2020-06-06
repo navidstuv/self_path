@@ -1,7 +1,7 @@
 from data.datasets import Histodata, Histodata_unlabel_domain_adopt
 from torch.utils.data import DataLoader
 from data.augmentations import get_medium_augmentations
-
+from utils.utils import worker_init_fn
 
 def get_loaders(config):
     if config.augmentation == True:
