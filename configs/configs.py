@@ -2,24 +2,24 @@ import os
 class DefaultConfigs(object):
 
 
-    mode = 'test'
+    mode = 'train'
     encoder_name = 'resnet50'
     pretrained = False
     stain_normalized = True
     augmentation = True
     exp_name = ' cam-oscc'
-    task_names = ['main_task','magnification', 'domain_classifier']#['main_task', 'magnification', 'stain', 'domain_classifier']
+    task_names = ['main_task', 'jigsaw']#['main_task', 'magnification', 'jigsaw', 'domain_classifier']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'main_task': {'type': 'classification', 'n_classes': 2},
-             'stain': {'type': 'classification', 'n_classes': 2},
+             'jigsaw': {'type': 'classification', 'n_classes': 8},
              'domain_classifier': {'type': 'classification', 'n_classes': 2}}
-    loss_weight = {'magnification': 0.2, 'domain_classifier':0.2, 'main_task': 1, 'stain':0.2}
+    loss_weight = {'magnification': 1, 'domain_classifier': 1, 'main_task': 1, 'jigsaw': 1}
 
-    log_dir = './main_normalized2/logs'
-    cache_dir = './main_normalized2/cache'
-    model_dir = './main_normalized2/model'
-    best_model_dir = './main_normalized2/best_model'
+    log_dir = './testtt/logs'
+    cache_dir = './testtt/cache'
+    model_dir = './testtt/model'
+    best_model_dir = './testtt/best_model'
     training_resume = ''
     training_num_print_epoch = 20
 

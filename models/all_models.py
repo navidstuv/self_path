@@ -149,8 +149,8 @@ class AuxModel:
             tar = tar_batch
             src = to_device(src, self.device)
             tar = to_device(tar, self.device)
-            src_imgs, src_cls_lbls, src_aux_mag_imgs, src_aux_mag_lbls, src_aux_stain_imgs, src_aux_stain_lbls = src
-            tar_imgs, tar_lbls, tar_aux_mag_imgs, tar_aux_mag_lbls, tar_aux_stain_imgs, tar_aux_stain_lbls = tar
+            src_imgs, src_cls_lbls, src_aux_mag_imgs, src_aux_mag_lbls, src_aux_jigsaw_imgs, src_aux_jigsaw_lbls = src
+            tar_imgs, tar_lbls, tar_aux_mag_imgs, tar_aux_mag_lbls, tar_aux_jigsaw_imgs, tar_aux_jigsaw_lbls = tar
 
             if 'domain_classifier' in self.config.task_names:
                 r = torch.randperm(src_imgs.size()[0] + tar_imgs.size()[0])
@@ -163,7 +163,6 @@ class AuxModel:
                 src_tar_lbls = src_tar_lbls[:src_imgs.size()[0]]
                 src_tar_lbls = src_tar_lbls.long().cuda()
 
-            self.optimizer.zero_grad()
 
             src_main_logits = self.model(src_imgs, 'main_task')
             src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
@@ -185,13 +184,13 @@ class AuxModel:
                     'magnification']  # todo: magnification weight
                 loss += tar_aux_loss['magnification'] * self.config.loss_weight[
                     'magnification']  # todo: main task weight
-            if 'stain' in self.config.task_names:
-                tar_aux_stain_logits = self.model(tar_aux_stain_imgs, 'stain')
-                src_aux_stain_logits = self.model(src_aux_stain_imgs, 'stain')
-                tar_aux_loss['stain'] = self.class_loss_func(tar_aux_stain_logits, tar_aux_stain_lbls)
-                src_aux_loss['stain'] = self.class_loss_func(src_aux_stain_logits, src_aux_stain_lbls)
-                loss += tar_aux_loss['stain'] * self.config.loss_weight['stain']  # todo: main task weight
-                loss += src_aux_loss['stain'] * self.config.loss_weight['stain']  # todo: main task weight
+            if 'jigsaw' in self.config.task_names:
+                tar_aux_jigsaw_logits = self.model(tar_aux_jigsaw_imgs, 'jigsaw')
+                src_aux_jigsaw_logits = self.model(src_aux_jigsaw_imgs, 'jigsaw')
+                tar_aux_loss['jigsaw'] = self.class_loss_func(tar_aux_jigsaw_logits, tar_aux_jigsaw_lbls)
+                src_aux_loss['jigsaw'] = self.class_loss_func(src_aux_jigsaw_logits, src_aux_jigsaw_lbls)
+                loss += tar_aux_loss['jigsaw'] * self.config.loss_weight['jigsaw']  # todo: main task weight
+                loss += src_aux_loss['jigsaw'] * self.config.loss_weight['jigsaw']  # todo: main task weight
 
 
 
