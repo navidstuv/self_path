@@ -7,6 +7,8 @@ from data.utils import center_crop, jigsaw_res
 from skimage.color import rgb2hed, gray2rgb
 import matplotlib.pyplot as plt
 from data import stainNorm_Reinhard
+from skimage.color import rgb2hed
+from skimage.exposure import rescale_intensity
 
 from albumentations.augmentations.transforms import CenterCrop
 import os
@@ -99,8 +101,8 @@ class Histodata(Dataset):
             jig_label = torch.from_numpy(np.array(jig_label)).long()
 
         if 'hematoxylin' in config.task_names:
-            hem_img = self.n.hematoxylin(main_img)
-            # hem_img = torch.from_numpy(hem_img).float()
+            ihc_hed = rgb2hed(main_img)
+            hem_img = rescale_intensity(ihc_hed[:, :, 0], out_range=(0, 1))
             hem_img = torch.from_numpy(np.array(hem_img)).long()
         main_img = preprocess_input (main_img.astype(np.float32))
         main_img = torch.from_numpy(main_img).float()
@@ -211,8 +213,8 @@ class Histodata_unlabel_domain_adopt(Dataset):
                 jig_label = torch.from_numpy(np.array(jig_label)).long()
 
             if 'hematoxylin' in config.task_names:
-                hem_img = self.n.hematoxylin(main_img)
-                # hem_img = torch.from_numpy(hem_img).float()
+                ihc_hed = rgb2hed(main_img)
+                hem_img = rescale_intensity(ihc_hed[:, :, 0], out_range=(0, 1))
                 hem_img = torch.from_numpy(np.array(hem_img)).long()
             main_img = preprocess_input (main_img.astype(np.float32))
             main_img = torch.from_numpy(main_img).float()
