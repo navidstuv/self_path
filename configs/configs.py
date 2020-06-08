@@ -20,7 +20,7 @@ class DefaultConfigs(object):
     cache_dir = './testtt/cache'
     model_dir = './testtt/model'
     best_model_dir = './testtt/best_model'
-    training_resume = ''
+    training_resume = 'model_last.pth'
     training_num_print_epoch = 20
 
 
