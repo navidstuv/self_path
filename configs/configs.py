@@ -2,7 +2,7 @@ import os
 class DefaultConfigs(object):
 
 
-    mode = 'train'
+    mode = 'test'
     encoder_name = 'resnet50'
     pretrained = False
     stain_normalized = True
@@ -46,9 +46,9 @@ class DefaultConfigs(object):
     # base_data_path_unlabel_new = 'G://test_camelyon'
     pickle_path_test = './pickle_files/test.pickle'
     budget_test = 'test1'
-    testing_model ='/media/navid/HDD1/Back_up/experiments_log/domain_adoptation/main_mag_dom_normalized3/best_model/model_best.pth'
+    testing_model ='testtt/best_model/model_best.pth'
 
-    save_output = False
+    save_output = True
     eval_batch_size = 128
     test_batch_size = 128
 

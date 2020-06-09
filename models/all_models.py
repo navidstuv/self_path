@@ -10,6 +10,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.optim.lr_scheduler import _LRScheduler
+from utils.utils import stats
 
 # custom modules
 from schedulers import get_scheduler
@@ -361,6 +362,7 @@ class AuxModel:
             soft_labels = soft_labels[1:, :]
             np.save('pred_'+self.config.mode+'_main3.npy', soft_labels)
             np.save('true_'+self.config.mode+'_main3.npy', true_labels)
+            stats(soft_labels, true_labels, opt_thresh=0.5)
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total
         self.logger.info('class_acc: {:.2f} %'.format(class_acc))
