@@ -2,7 +2,7 @@ import os
 class DefaultConfigs(object):
 
 
-    mode = 'test'
+    mode = 'train'
     encoder_name = 'resnet50'
     pretrained = False
     stain_normalized = True

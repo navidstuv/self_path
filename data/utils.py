@@ -89,6 +89,30 @@ def jigsaw_res(big_image):
         jig[:64, 64:, :] = img_5
         jig[64:, :64, :] = img_20
         jig_lbl = 7
+    elif order=='9':
+        jig[:64, :64, :] = img_10
+        jig[64:, 64:, :] = img_10
+        jig[:64, 64:, :] = img_10
+        jig[64:, :64, :] = img_10
+        jig_lbl = 8
+    elif order=='10':
+        jig[:64, :64, :] = img_20
+        jig[64:, 64:, :] = img_20
+        jig[:64, 64:, :] = img_20
+        jig[64:, :64, :] = img_20
+        jig_lbl = 9
+    elif order=='11':
+        jig[:64, :64, :] = img_40
+        jig[64:, 64:, :] = img_40
+        jig[:64, 64:, :] = img_40
+        jig[64:, :64, :] = img_40
+        jig_lbl = 10
+    elif order=='12':
+        jig[:64, :64, :] = img_5
+        jig[64:, 64:, :] = img_5
+        jig[:64, 64:, :] = img_5
+        jig[64:, :64, :] = img_5
+        jig_lbl = 11
     return jig, jig_lbl
 
 
