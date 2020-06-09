@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="2b1935da-3b1d-491c-8516-ec53be940f16" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="hemtoxylin" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1cwZ4G9oBYTRNIrCJld0Jkwrmr2" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="TERMINAL_CUSTOM_COMMANDS_GOT_IT" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="python.debugger.dataview.autoresize" value="false" />
+    <property name="settings.editor.selected.configurable" value="Docker" />
+  </component>
+  <component name="RunManager" selected="Python.main">
+    <configuration name="configs" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Multi_task_domain_adapt" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/configs" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/configs/configs.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="datasets" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Multi_task_domain_adapt" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/data" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/data/datasets.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Multi_task_domain_adapt" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test_vahadane" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Multi_task_domain_adapt" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_vahadane.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.main" />
+        <item itemvalue="Python.configs" />
+        <item itemvalue="Python.test_vahadane" />
+        <item itemvalue="Python.datasets" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="2b1935da-3b1d-491c-8516-ec53be940f16" name="Default Changelist" comment="" />
+      <created>1591441423365</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1591441423365</updated>
+      <workItem from="1591441428334" duration="40524000" />
+    </task>
+    <task id="LOCAL-00001" summary="new jigsaw task added">
+      <created>1591448079156</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1591448079157</updated>
+    </task>
+    <task id="LOCAL-00002" summary="radomness is preserved when creating mag labels">
+      <created>1591448371041</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1591448371041</updated>
+    </task>
+    <task id="LOCAL-00003" summary="radomness is preserved when creating mag labels">
+      <created>1591463309117</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1591463309117</updated>
+    </task>
+    <task id="LOCAL-00004" summary="stain matrix adde">
+      <created>1591466898832</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1591466898832</updated>
+    </task>
+    <task id="LOCAL-00005" summary="hem task added">
+      <created>1591472341433</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1591472341433</updated>
+    </task>
+    <task id="LOCAL-00006" summary="quick fixes">
+      <created>1591634880296</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1591634880296</updated>
+    </task>
+    <task id="LOCAL-00007" summary="hematoxylin fixed&#10;I used scikit-learn module">
+      <created>1591652797695</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1591652797695</updated>
+    </task>
+    <task id="LOCAL-00008" summary="small fixes">
+      <created>1591691434952</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1591691434952</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="new jigsaw task added" />
+    <MESSAGE value="radomness is preserved when creating mag labels" />
+    <MESSAGE value="stain matrix adde" />
+    <MESSAGE value="hem task added" />
+    <MESSAGE value="quick fixes" />
+    <MESSAGE value="hematoxylin fixed&#10;I used scikit-learn module" />
+    <MESSAGE value="small fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="small fixes" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="424" y="687" width="1111" height="513" key="#xdebugger.evaluate" timestamp="1591634029458">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state x="424" y="687" width="1111" height="513" key="#xdebugger.evaluate/70.27.1850.1173@70.27.1850.1173" timestamp="1591634029458" />
+    <state x="170" y="127" width="1650" height="973" key="DiffContextDialog" timestamp="1591691424599">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state x="170" y="127" width="1650" height="973" key="DiffContextDialog/70.27.1850.1173@70.27.1850.1173" timestamp="1591691424599" />
+    <state width="1804" height="238" key="GridCell.Tab.0.bottom" timestamp="1591652951088">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state width="1804" height="238" key="GridCell.Tab.0.bottom/70.27.1850.1173@70.27.1850.1173" timestamp="1591652951088" />
+    <state width="1804" height="238" key="GridCell.Tab.0.center" timestamp="1591652951087">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state width="1804" height="238" key="GridCell.Tab.0.center/70.27.1850.1173@70.27.1850.1173" timestamp="1591652951087" />
+    <state width="1804" height="238" key="GridCell.Tab.0.left" timestamp="1591652951087">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state width="1804" height="238" key="GridCell.Tab.0.left/70.27.1850.1173@70.27.1850.1173" timestamp="1591652951087" />
+    <state width="1804" height="238" key="GridCell.Tab.0.right" timestamp="1591652951088">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state width="1804" height="238" key="GridCell.Tab.0.right/70.27.1850.1173@70.27.1850.1173" timestamp="1591652951088" />
+    <state width="1804" height="388" key="GridCell.Tab.1.bottom" timestamp="1591634781803">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state width="1804" height="388" key="GridCell.Tab.1.bottom/70.27.1850.1173@70.27.1850.1173" timestamp="1591634781803" />
+    <state width="1804" height="388" key="GridCell.Tab.1.center" timestamp="1591634781803">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state width="1804" height="388" key="GridCell.Tab.1.center/70.27.1850.1173@70.27.1850.1173" timestamp="1591634781803" />
+    <state width="1804" height="388" key="GridCell.Tab.1.left" timestamp="1591634781802">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state width="1804" height="388" key="GridCell.Tab.1.left/70.27.1850.1173@70.27.1850.1173" timestamp="1591634781802" />
+    <state width="1804" height="388" key="GridCell.Tab.1.right" timestamp="1591634781803">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state width="1804" height="388" key="GridCell.Tab.1.right/70.27.1850.1173@70.27.1850.1173" timestamp="1591634781803" />
+    <state x="684" y="297" width="612" height="640" key="RollbackChangesDialog" timestamp="1591616867449">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state x="684" y="297" width="612" height="640" key="RollbackChangesDialog/70.27.1850.1173@70.27.1850.1173" timestamp="1591616867449" />
+    <state x="484" y="248" width="1022" height="737" key="SettingsEditor" timestamp="1591652929080">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state x="484" y="248" width="1022" height="737" key="SettingsEditor/70.27.1850.1173@70.27.1850.1173" timestamp="1591652929080" />
+    <state x="590" y="349" width="800" height="535" key="Vcs.Push.Dialog.v2" timestamp="1591691439283">
+      <screen x="70" y="27" width="1850" height="1173" />
+    </state>
+    <state x="590" y="349" width="800" height="535" key="Vcs.Push.Dialog.v2/70.27.1850.1173@70.27.1850.1173" timestamp="1591691439283" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/main.py</url>
+          <line>29</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/models/all_models.py</url>
+          <line>148</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda3/lib/python3.7/site-packages/spams.py</url>
+          <line>1841</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/data/stainNorm_macenco.py</url>
+          <line>128</line>
+          <option name="timeStamp" value="26" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/Multi_task_domain_adapt$datasets.coverage" NAME="datasets Coverage Results" MODIFIED="1591617380460" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/data" />
+    <SUITE FILE_PATH="coverage/Multi_task_domain_adapt$configs.coverage" NAME="configs Coverage Results" MODIFIED="1591635648825" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/configs" />
+    <SUITE FILE_PATH="coverage/Multi_task_domain_adapt$test_vahadane.coverage" NAME="test_vahadane Coverage Results" MODIFIED="1591634826977" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Multi_task_domain_adapt$main.coverage" NAME="main Coverage Results" MODIFIED="1591643428301" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+  </component>
+</project>
