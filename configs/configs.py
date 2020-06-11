@@ -2,7 +2,7 @@ import os
 class DefaultConfigs(object):
 
 
-    mode = 'train'
+    mode = 'test'
     encoder_name = 'resnet50'
     pretrained = False
     stain_normalized = True
@@ -12,15 +12,15 @@ class DefaultConfigs(object):
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'main_task': {'type': 'classification', 'n_classes': 2},
-             'jigsaw': {'type': 'classification', 'n_classes': 8},
+             'jigsaw': {'type': 'classification', 'n_classes': 12},
              'domain_classifier': {'type': 'classification', 'n_classes': 2}}
     loss_weight = {'magnification': 1, 'domain_classifier': 1, 'main_task': 1, 'jigsaw': 1}
 
-    log_dir = './testtt/logs'
-    cache_dir = './testtt/cache'
-    model_dir = './testtt/model'
-    best_model_dir = './testtt/best_model'
-    training_resume = 'model_last.pth'
+    log_dir = './test_jigsaw/logs'
+    cache_dir = './test_jigsaw/cache'
+    model_dir = './test_jigsaw/model'
+    best_model_dir = './test_jigsaw/best_model'
+    training_resume = ''
     training_num_print_epoch = 20
 
 
@@ -46,9 +46,9 @@ class DefaultConfigs(object):
     # base_data_path_unlabel_new = 'G://test_camelyon'
     pickle_path_test = './pickle_files/test.pickle'
     budget_test = 'test1'
-    testing_model ='testtt/best_model/model_best.pth'
+    testing_model ='/media/navid/HDD1/Back_up/git-files/Multi_task_domain_adapt/test_jigsaw/best_model/model_best.pth'
 
-    save_output = True
+    save_output = False
     eval_batch_size = 128
     test_batch_size = 128
 

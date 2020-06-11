@@ -53,7 +53,7 @@ class AuxModel:
         # set up model
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = get_model(config)
-        if len(config.gpus)>1:
+        if len(config.gpus) > 1:
             self.model = nn.DataParallel(self.model)
         self.model = self.model.to(self.device)
         self.best_acc = 0
@@ -97,7 +97,6 @@ class AuxModel:
             src = to_device(src, self.device)
             src_imgs, src_cls_lbls, _, _, _, _ = src
 
-
             self.optimizer.zero_grad()
 
             src_main_logits = self.model(src_imgs, 'main_task')
@@ -116,7 +115,6 @@ class AuxModel:
             batch_time.update(time.time() - t)
 
             self.start_iter += 1
-
 
             if self.start_iter % print_freq == 0:
                 print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f}| acc:{:.3f}| src_main: {:.3f} |' + '|{:4.2f} s/it'
@@ -164,20 +162,20 @@ class AuxModel:
                 src_tar_lbls = src_tar_lbls[:src_imgs.size()[0]]
                 src_tar_lbls = src_tar_lbls.long().cuda()
 
-
             src_main_logits = self.model(src_imgs, 'main_task')
             src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
             loss = src_main_loss * self.config.loss_weight['main_task']
 
+            # entroy loss for target
             tar_main_logits = self.model(tar_imgs, 'main_task')
             tar_main_loss = self.entropy_loss(tar_main_logits)
-            loss+=tar_main_loss
+            loss += tar_main_loss
 
             tar_aux_loss = {}
             src_aux_loss = {}
 
             if 'domain_classifier' in self.config.task_names:
-                src_tar_logits = self.model(src_tar_img, 'domain_classifier' , alpha)
+                src_tar_logits = self.model(src_tar_img, 'domain_classifier', alpha)
                 tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tar_lbls)
                 loss += tar_aux_loss['domain_classifier'] * self.config.loss_weight['domain_classifier']
             if 'magnification' in self.config.task_names:
@@ -196,8 +194,6 @@ class AuxModel:
                 src_aux_loss['jigsaw'] = self.class_loss_func(src_aux_jigsaw_logits, src_aux_jigsaw_lbls)
                 loss += tar_aux_loss['jigsaw'] * self.config.loss_weight['jigsaw']  # todo: main task weight
                 loss += src_aux_loss['jigsaw'] * self.config.loss_weight['jigsaw']  # todo: main task weight
-
-
 
             precision1_train, precision2_train = accuracy(src_main_logits, src_cls_lbls, topk=(1, 2))
             top1.update(precision1_train[0], src_imgs.size(0))
@@ -234,10 +230,13 @@ class AuxModel:
                 for task_name in self.config.aux_task_names:
                     if task_name == 'domain_classifier':
                         # self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
-                        self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name], self.start_iter)
+                        self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name],
+                                               self.start_iter)
                     else:
-                        self.writer.add_scalar('losses/src_aux_loss_' + task_name, src_aux_loss[task_name], self.start_iter)
-                        self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name], self.start_iter)
+                        self.writer.add_scalar('losses/src_aux_loss_' + task_name, src_aux_loss[task_name],
+                                               self.start_iter)
+                        self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name],
+                                               self.start_iter)
         self.scheduler.step()
 
         # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
@@ -251,7 +250,7 @@ class AuxModel:
         start_epoch = self.start_iter // num_batches
         num_epochs = self.config.num_epochs
         for epoch in range(start_epoch, num_epochs):
-            if len(self.config.task_names)==1:
+            if len(self.config.task_names) == 1:
                 self.train_epoch_main_task(src_loader, tar_loader, epoch, print_freq)
             else:
                 self.train_epoch_all_tasks(src_loader, tar_loader, epoch, print_freq)
@@ -276,7 +275,7 @@ class AuxModel:
                 self.writer.add_scalar('test/class_acc', class_acc, self.start_iter)
                 # if class_acc > self.best_acc:
                 #     self.best_acc = class_acc
-                    # todo copy current model to best model
+                # todo copy current model to best model
                 self.logger.info('Best testing accuracy: {:.2f} %'.format(class_acc))
 
         self.logger.info('Best validation accuracy: {:.2f} %'.format(self.best_acc))
@@ -333,22 +332,17 @@ class AuxModel:
                     smax_out = smax(logits)
                     soft_labels = np.concatenate((soft_labels, smax_out.cpu().numpy()), axis=0)
                     true_labels = np.append(true_labels, cls_lbls.cpu().numpy())
-                    pred_trh = smax_out.cpu().numpy()[:,1]
-                    pred_trh[pred_trh>=0.5] = 1
+                    pred_trh = smax_out.cpu().numpy()[:, 1]
+                    pred_trh[pred_trh >= 0.5] = 1
                     pred_trh[pred_trh < 0.5] = 0
-                    compare = cls_lbls.cpu().numpy()-pred_trh
-                    FP_idx = np.where(compare==-1)
-                    FN_idx = np.where(compare==1)
-                    FP_imgs = imgs.cpu().numpy()[FP_idx,...]
-                    FN_imgs = imgs.cpu().numpy()[FN_idx, ...]
-                    save_output_img(FP_imgs[0,...],'FP_images', 'FP', kk*imgs.shape[0])
-                    save_output_img(FN_imgs[0,...], 'FN_images', 'FN', kk * imgs.shape[0])
-                    kk+=1
-
-
-
-
-
+                    compare = cls_lbls.cpu().numpy() - pred_trh
+                    FP_idx = np.where(compare == -1)
+                    FN_idx = np.where(compare == 1)
+                    # FP_imgs = imgs.cpu().numpy()[FP_idx, ...]
+                    # FN_imgs = imgs.cpu().numpy()[FN_idx, ...]
+                    # save_output_img(FP_imgs[0, ...], 'FP_images', 'FP', kk * imgs.shape[0])
+                    # save_output_img(FN_imgs[0, ...], 'FN_images', 'FN', kk * imgs.shape[0])
+                    kk += 1
 
                 _, cls_pred = logits.max(dim=1)
                 # _, aux_pred = aux_logits.max(dim=1)
@@ -360,8 +354,8 @@ class AuxModel:
             tt.close()
         if self.config.save_output == True:
             soft_labels = soft_labels[1:, :]
-            np.save('pred_'+self.config.mode+'_main3.npy', soft_labels)
-            np.save('true_'+self.config.mode+'_main3.npy', true_labels)
+            np.save('pred_' + self.config.mode + '_main3.npy', soft_labels)
+            np.save('true_' + self.config.mode + '_main3.npy', true_labels)
             stats(soft_labels, true_labels, opt_thresh=0.5)
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total

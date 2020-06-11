@@ -40,7 +40,7 @@ def jigsaw_res(big_image):
 
     img_5 = cv2.resize(big_image, (64, 64))
 
-    order = np.random.choice(['1', '2', '2', '4', '5', '6', '7', '8'], 1)
+    order = np.random.choice(['1', '2', '3', '4', '5', '6', '7', '8', '9','10','11','12'], 1)
     if order=='1':
         jig[:64, :64, :] = img_40
         jig[64:, 64:, :] = img_20
