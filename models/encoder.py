@@ -6,6 +6,7 @@ from torch import nn
 import torchvision.models as models
 import torch
 from torch.nn import BatchNorm2d
+from torch.nn.utils import weight_norm
 
 
 def get_resnet(encoder_name, pretrained=True):
@@ -74,6 +75,13 @@ class ResNet(nn.Module):
         if detach == 0:
             return layer0, layer1, layer2, layer3, layer4
 
+class Flatten(nn.Module):
+
+    def __init__(self):
+        super(Flatten, self).__init__()
+
+    def forward(self, x):
+        return x.view(len(x), -1)
 class Disc128(nn.Module):
     """docstring for Discriminator"""
 
