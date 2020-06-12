@@ -3,7 +3,7 @@ Multi-Task Histology model
 """
 import torch.nn as nn
 from .encoder import get_resnet, ResNet
-from .decoders import  UnetDecoder, Classifier
+from .decoders import  UnetDecoder, Classifier, Disc128_classifier
 from torch import optim
 from utils.utils import ReverseLayerF
 
@@ -31,7 +31,7 @@ class MultiTaskCNN(nn.Module):
         x = self.bn(x)
         layer0, layer1, layer2, layer3, layer4 = self.base(x)
         if task_name=='domain_classifier':
-            if isinstance(self.decoders[task_name], Classifier):
+            if isinstance(self.decoders[task_name], Disc128_classifier):
                 reversed_input = ReverseLayerF.apply(layer4, alpha)
                 out = self.decoders[task_name](reversed_input)
         else:

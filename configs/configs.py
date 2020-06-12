@@ -2,13 +2,13 @@ import os
 class DefaultConfigs(object):
 
 
-    mode = 'test'
+    mode = 'train'
     encoder_name = 'resnet50'
     pretrained = False
     stain_normalized = True
     augmentation = True
     exp_name = ' cam-oscc'
-    task_names = ['main_task', 'hematoxylin']#['main_task', 'magnification', 'jigsaw', 'domain_classifier']
+    task_names = ['main_task', 'jigsaw']#['main_task', 'magnification', 'jigsaw', 'domain_classifier']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'main_task': {'type': 'classification', 'n_classes': 2},
