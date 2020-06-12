@@ -42,10 +42,13 @@ class ResNet(nn.Module):
             self.base_model = models.resnet18(pretrained=pretrained)
             self.latent_dim = 512
             self.multiple = 1
-        else:
+        elif encoder_name == "resnet50":
             self.base_model = models.resnet50(pretrained=pretrained)
             self.latent_dim = 2048
             self.multiple = 4
+        elif encoder_name == "Disc128":
+
+
 
         self.base_layers = list(self.base_model.children())
 
