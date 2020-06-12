@@ -153,6 +153,7 @@ class Classifier(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(int(input_dim/2), n_classes),
         )
+        # self.fc = nn.Linear(int(input_dim), n_classes)
         self.maxpool = nn.AdaptiveMaxPool2d(1)
     def forward(self, x):
         x = self.maxpool(x)

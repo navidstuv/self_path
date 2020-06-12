@@ -18,10 +18,10 @@ class DefaultConfigs(object):
              }
     loss_weight = {'magnification': 1, 'domain_classifier': 1, 'main_task': 1, 'jigsaw': 1, 'hematoxylin': 1}
 
-    log_dir = './test_hematoxylin/logs'
-    cache_dir = './test_hematoxylin/cache'
-    model_dir = './test_hematoxylin/model'
-    best_model_dir = './test_hematoxylin/best_model'
+    log_dir = './test_hematoxylin2/logs'
+    cache_dir = './test_hematoxylin2/cache'
+    model_dir = './test_hematoxylin2/model'
+    best_model_dir = './test_hematoxylin2/best_model'
     training_resume = ''
     training_num_print_epoch = 20
 
@@ -48,7 +48,7 @@ class DefaultConfigs(object):
     # base_data_path_unlabel_new = 'G://test_camelyon'
     pickle_path_test = './pickle_files/test.pickle'
     budget_test = 'test1'
-    testing_model ='./test_hematoxylin/model/model_last.pth'
+    testing_model ='./test_hematoxylin/best_model/model_best.pth'
 
     save_output = True
     eval_batch_size = 128
