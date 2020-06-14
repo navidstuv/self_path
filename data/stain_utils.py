@@ -8,7 +8,7 @@ from __future__ import division
 
 import numpy as np
 import cv2 as cv
-# import spams
+import spams
 import matplotlib.pyplot as plt
 
 
