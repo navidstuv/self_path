@@ -7,6 +7,7 @@ import torchvision.models as models
 import torch
 from torch.nn import BatchNorm2d
 from torch.nn.utils import weight_norm
+from configs.configs import config
 
 
 def get_resnet(encoder_name, pretrained=True):
@@ -74,7 +75,30 @@ class ResNet(nn.Module):
             return layer0.detach(), layer1.detach(), layer2.detach(), layer3.detach(), layer4
         if detach == 0:
             return layer0, layer1, layer2, layer3, layer4
+class Finetune(nn.Module):
 
+    def __init__(self, model):
+        super(Finetune, self).__init__()
+        self.model = model
+        for parameter in self.model.parameters():
+            parameter.requires_grad = False
+        self.fc = nn.Linear(int(2048), 2)
+        self.maxpool = nn.AdaptiveMaxPool2d(1)
+
+
+    def forward(self, x):
+        # it soeadnt matter what task name is because we are just usin encoder
+        x, _ = self.model(x, config.task_names[0])
+        x = self.maxpool(x)
+        x = x.reshape(x.size(0), -1)
+        x = self.fc(x)
+        return x
+
+        detach = int(self.detach) if isinstance(self.detach, bool) else np.random.binomial(1, self.detach)
+        if detach == 1:
+            return layer0.detach(), layer1.detach(), layer2.detach(), layer3.detach(), layer4
+        if detach == 0:
+            return layer0, layer1, layer2, layer3, layer4
 class Flatten(nn.Module):
 
     def __init__(self):

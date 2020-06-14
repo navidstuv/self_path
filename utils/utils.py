@@ -253,6 +253,7 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
     print('conf_matrix is: {}'.format(conf_matrix))
     print('Precision is {}'.format(precision))
     print('recall is {}'.format(recall))
+    return Auc
 
 def show_images(images, iter, cols=1, titles=None):
     """Display a list of images in a single figure with matplotlib.
@@ -282,6 +283,7 @@ def show_images(images, iter, cols=1, titles=None):
     plt.show()
     plt.savefig('../patches/'+str(iter)+'.png')
     # plt.close()
+
 def save_output_img(imgs,path, prefix, num):
     if not os.path.exists(path):
         os.mkdir(path)

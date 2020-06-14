@@ -27,15 +27,17 @@ def main():
     model = AuxModel(config, logger)
 
 
-    src_loader, tar_loader, val_loader, test_loader  = get_loaders(config)
+    src_loader, _, val_loader, test_loader  = get_loaders(config)
 
 
     if config.mode == 'train':
-        model.train(src_loader, tar_loader, val_loader, test_loader)
+        model.train(src_loader)
     elif config.mode == 'val':
         model.test(val_loader)
     elif config.mode == 'test':
         model.test(test_loader)
+    elif config.mode == 'fine-tune':
+        model.fine_tune(src_loader, val_loader, test_loader)
 
 
 if __name__ == '__main__':

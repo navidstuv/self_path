@@ -2,26 +2,25 @@ import os
 class DefaultConfigs(object):
 
 
-    mode = 'test'
+    mode = 'train'# if mode fine-tune is used weights should be loaded
     encoder_name = 'resnet50'
     pretrained = False
     stain_normalized = True
     augmentation = True
     exp_name = ' cam-oscc'
-    task_names = ['main_task', 'jigsaw']#['main_task', 'magnification', 'jigsaw', 'domain_classifier']
-    aux_task_names =task_names[1:]
+    task_names = ['hematoxylin']#['hematoxylin','magnification', 'jigsaw', , eosin]
+    aux_task_names =task_names
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
-             'main_task': {'type': 'classification', 'n_classes': 2},
              'jigsaw': {'type': 'classification', 'n_classes': 12},
              'domain_classifier': {'type': 'classification', 'n_classes': 2},
              'hematoxylin': {'type': 'pixel', 'n_classes': 1}
              }
-    loss_weight = {'magnification': 1, 'domain_classifier': 1, 'main_task': 1, 'jigsaw': 1, 'hematoxylin': 1}
+    loss_weight = {'magnification': 1, 'domain_classifier': 1, 'jigsaw': 1, 'hematoxylin': 1}
 
-    log_dir = './test_hematoxylin2/logs'
-    cache_dir = './test_hematoxylin2/cache'
-    model_dir = './test_hematoxylin2/model'
-    best_model_dir = './test_hematoxylin2/best_model'
+    log_dir = './hematoxylin_self/logs'
+    cache_dir = './hematoxylin_self/cache'
+    model_dir = './hematoxylin_self/model'
+    best_model_dir = './hematoxylin_self/best_model'
 
     training_resume = ''
     training_num_print_epoch = 20
@@ -61,7 +60,7 @@ class DefaultConfigs(object):
 
     random_seed = 33
     num_epochs = 100
-    gpus = [0,1]
+    gpus = [0]
     lr =  0.001
 
 

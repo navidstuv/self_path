@@ -149,11 +149,6 @@ class Flatten(nn.Module):
 class Classifier(nn.Module):
     def __init__(self, input_dim, n_classes):
         super(Classifier, self).__init__()
-        self.fc = nn.Sequential(
-            nn.Linear(input_dim , int(input_dim/2)),
-            nn.ReLU(inplace=True),
-            nn.Linear(int(input_dim/2), n_classes),
-        )
         self.fc = nn.Linear(int(input_dim), n_classes)
         self.maxpool = nn.AdaptiveMaxPool2d(1)
     def forward(self, x):

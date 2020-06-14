@@ -30,16 +30,12 @@ class MultiTaskCNN(nn.Module):
         """
         x = self.bn(x)
         layer0, layer1, layer2, layer3, layer4 = self.base(x)
-        if task_name=='domain_classifier':
-            if isinstance(self.decoders[task_name], Disc128_classifier):
-                reversed_input = ReverseLayerF.apply(layer4, alpha)
-                out = self.decoders[task_name](reversed_input)
-        else:
-            if isinstance(self.decoders[task_name], UnetDecoder):
-                out = self.decoders[task_name](x, layer0, layer1, layer2, layer3, layer4)
-            if isinstance(self.decoders[task_name], Classifier):
+
+        if isinstance(self.decoders[task_name], UnetDecoder):
+            out = self.decoders[task_name](x, layer0, layer1, layer2, layer3, layer4)
+        if isinstance(self.decoders[task_name], Classifier):
                 out = self.decoders[task_name](layer4)
-        return out
+        return layer4, out
 
 
 

@@ -11,10 +11,10 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.optim.lr_scheduler import _LRScheduler
 from utils.utils import stats
-
+from sklearn.metrics import roc_auc_score
 # custom modules
 from schedulers import get_scheduler
-
+from models.encoder import Finetune
 from optimizers import get_optimizer
 from models.model import get_model
 from utils.metrics import AverageMeter, accuracy
@@ -57,6 +57,7 @@ class AuxModel:
             self.model = nn.DataParallel(self.model)
         self.model = self.model.to(self.device)
         self.best_acc = 0
+        self.best_auc = 0
 
         if config.mode == 'train':
             # set up optimizer, lr scheduler and loss functions
@@ -76,10 +77,25 @@ class AuxModel:
 
             cudnn.benchmark = True
 
+        elif config.mode == 'fine-tune':
+            # set up optimizer, lr scheduler and loss functions
+
+            self.lr = config.lr
+            self.load(os.path.join(config.training_resume))
+            # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
+            # self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
+
+            self.class_loss_func = nn.CrossEntropyLoss()
+            # self.pixel_loss = nn.L1Loss()
+
+            self.start_iter = 0
+
+            cudnn.benchmark = True
+
         elif config.mode == 'val':
-            self.load(os.path.join(config.testing_model))
+            self.load(os.path.join(self.config.testing_model))
         else:
-            self.load(os.path.join(config.testing_model))
+            self.load(os.path.join(self.config.testing_model))
 
     def entropy_loss(self, x):
         return torch.sum(-F.softmax(x, 1) * F.log_softmax(x, 1), 1).mean()
@@ -131,82 +147,40 @@ class AuxModel:
         # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
         # del src_aux_logits, src_class_logits
         # del tar_aux_logits, tar_class_logits
-
-    def train_epoch_all_tasks(self, src_loader, tar_loader, epoch, print_freq):
+    def train_epoch_all_tasks(self, src_loader, epoch, print_freq):
         self.model.train()
         batch_time = AverageMeter()
         losses = AverageMeter()
         top1 = AverageMeter()
-        start_steps = epoch * len(src_loader)
-        total_steps = self.config.num_epochs * len(tar_loader)
-        for it, (src_batch, tar_batch) in enumerate(zip(src_loader, itertools.cycle(tar_loader))):
+        for it, src_batch in enumerate(src_loader):
             t = time.time()
-            p = float(it + start_steps) / total_steps
-            alpha = 2. / (1. + np.exp(-10 * p)) - 1
 
             self.optimizer.zero_grad()
             src = src_batch
-            tar = tar_batch
             src = to_device(src, self.device)
-            tar = to_device(tar, self.device)
             src_imgs, src_cls_lbls, src_aux_mag_imgs, src_aux_mag_lbls, src_aux_jigsaw_imgs, src_aux_jigsaw_lbls, src_aux_hem_lbls = src
-            tar_imgs, tar_lbls, tar_aux_mag_imgs, tar_aux_mag_lbls, tar_aux_jigsaw_imgs, tar_aux_jigsaw_lbls, tar_aux_hem_lbls = tar
-
-            if 'domain_classifier' in self.config.task_names:
-                r = torch.randperm(src_imgs.size()[0] + tar_imgs.size()[0])
-                src_tar_imgs = torch.cat((src_imgs, tar_imgs), dim=0)
-                src_tar_imgs = src_tar_imgs[r, :, :, :]
-                src_tar_img = src_tar_imgs[:src_imgs.size()[0], :, :, :]
-                src_tar_lbls = torch.cat((torch.zeros((src_imgs.size()[0])), torch.ones((tar_imgs.size()[0]))),
-                                         dim=0)
-                src_tar_lbls = src_tar_lbls[r]
-                src_tar_lbls = src_tar_lbls[:src_imgs.size()[0]]
-                src_tar_lbls = src_tar_lbls.long().cuda()
-
-            src_main_logits = self.model(src_imgs, 'main_task')
-            src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
-            loss = src_main_loss * self.config.loss_weight['main_task']
 
 
-            tar_main_logits = self.model(tar_imgs, 'main_task')
-            tar_main_loss = self.entropy_loss(tar_main_logits)
-            loss += tar_main_loss
+            loss = 0
 
-            tar_aux_loss = {}
             src_aux_loss = {}
 
-            if 'domain_classifier' in self.config.task_names:
-                src_tar_logits = self.model(src_tar_img, 'domain_classifier', alpha)
-                tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tar_lbls)
-                loss += tar_aux_loss['domain_classifier'] * self.config.loss_weight['domain_classifier']
             if 'magnification' in self.config.task_names:
-                tar_aux_mag_logits = self.model(tar_aux_mag_imgs, 'magnification')
                 src_aux_mag_logits = self.model(src_aux_mag_imgs, 'magnification')
-                tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_mag_logits, tar_aux_mag_lbls)
                 src_aux_loss['magnification'] = self.class_loss_func(src_aux_mag_logits, src_aux_mag_lbls)
                 loss += src_aux_loss['magnification'] * self.config.loss_weight[
                     'magnification']  # todo: magnification weight
-                loss += tar_aux_loss['magnification'] * self.config.loss_weight[
-                    'magnification']  # todo: main task weight
+
             if 'jigsaw' in self.config.task_names:
-                tar_aux_jigsaw_logits = self.model(tar_aux_jigsaw_imgs, 'jigsaw')
                 src_aux_jigsaw_logits = self.model(src_aux_jigsaw_imgs, 'jigsaw')
-                tar_aux_loss['jigsaw'] = self.class_loss_func(tar_aux_jigsaw_logits, tar_aux_jigsaw_lbls)
                 src_aux_loss['jigsaw'] = self.class_loss_func(src_aux_jigsaw_logits, src_aux_jigsaw_lbls)
-                loss += tar_aux_loss['jigsaw'] * self.config.loss_weight['jigsaw']  # todo: main task weight
                 loss += src_aux_loss['jigsaw'] * self.config.loss_weight['jigsaw']  # todo: main task weight
 
             if 'hematoxylin' in self.config.task_names:
-                tar_aux_hem_logits = self.model(tar_imgs, 'hematoxylin')
-                src_aux_hem_logits = self.model(src_imgs, 'hematoxylin')
-                tar_aux_loss['hematoxylin'] = self.pixel_loss(tar_aux_hem_logits, tar_aux_hem_lbls)
+                _, src_aux_hem_logits = self.model(src_imgs, 'hematoxylin')
                 src_aux_loss['hematoxylin'] = self.pixel_loss(src_aux_hem_logits, src_aux_hem_lbls)
-                loss += tar_aux_loss['hematoxylin'] * self.config.loss_weight['hematoxylin']  # todo: main task weight
                 loss += src_aux_loss['hematoxylin'] * self.config.loss_weight['hematoxylin']  # todo: main task weight
 
-
-            precision1_train, precision2_train = accuracy(src_main_logits, src_cls_lbls, topk=(1, 2))
-            top1.update(precision1_train[0], src_imgs.size(0))
 
             loss.backward()
             self.optimizer.step()
@@ -221,75 +195,34 @@ class AuxModel:
             if self.start_iter % print_freq == 0:
                 printt = ''
                 for task_name in self.config.aux_task_names:
-                    if task_name == 'domain_classifier':
-                        printt = printt + ' | tar_aux_' + task_name + ': {:.3f} |'
-                    else:
-                        printt = printt + 'src_aux_' + task_name + ': {:.3f} | tar_aux_' + task_name + ': {:.3f}'
-                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} |  acc: {:.3f} | src_main: {:.3f} |' + printt + '{:4.2f} s/it'
+                    printt = printt + 'src_aux_' + task_name + ': {:.3f} |'
+                print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} |' + printt + '{:4.2f} s/it'
                 src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
-                tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
                 self.logger.info(print_string.format(epoch, self.start_iter,
                                                      losses.avg,
-                                                     top1.avg,
-                                                     src_main_loss.item(),
                                                      *src_aux_loss_all,
-                                                     *tar_aux_loss_all,
                                                      batch_time.avg))
                 self.writer.add_scalar('losses/all_loss', losses.avg, self.start_iter)
-                self.writer.add_scalar('losses/src_main_loss', src_main_loss, self.start_iter)
                 for task_name in self.config.aux_task_names:
-                    if task_name == 'domain_classifier':
-                        # self.writer.add_scalar('losses/src_aux_loss_'+task_name, src_aux_loss[task_name], i_iter)
-                        self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name],
+                    self.writer.add_scalar('losses/src_aux_loss_' + task_name, src_aux_loss[task_name],
                                                self.start_iter)
-                    else:
-                        self.writer.add_scalar('losses/src_aux_loss_' + task_name, src_aux_loss[task_name],
-                                               self.start_iter)
-                        self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name],
-                                               self.start_iter)
+
         self.scheduler.step()
 
         # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
         # del src_aux_logits, src_class_logits
         # del tar_aux_logits, tar_class_logits
 
-    def train(self, src_loader, tar_loader, val_loader, test_loader):
+    def train(self, src_loader):
 
         num_batches = len(src_loader)
         print_freq = max(num_batches // self.config.training_num_print_epoch, 1)
         start_epoch = self.start_iter // num_batches
         num_epochs = self.config.num_epochs
         for epoch in range(start_epoch, num_epochs):
-            if len(self.config.task_names) == 1:
-                self.train_epoch_main_task(src_loader, tar_loader, epoch, print_freq)
-            else:
-                self.train_epoch_all_tasks(src_loader, tar_loader, epoch, print_freq)
+            self.train_epoch_all_tasks(src_loader, epoch, print_freq)
             # validation
             self.save(self.config.model_dir, 'last')
-
-            if val_loader is not None:
-                self.logger.info('validating...')
-                class_acc = self.test(val_loader)
-                # self.writer.add_scalar('val/aux_acc', class_acc, i_iter)
-                self.writer.add_scalar('val/class_acc', class_acc, self.start_iter)
-                if class_acc > self.best_acc:
-                    self.best_acc = class_acc
-                    self.save(self.config.best_model_dir, 'best')
-                    # todo copy current model to best model
-                self.logger.info('Best validation accuracy: {:.2f} %'.format(self.best_acc))
-
-            if test_loader is not None:
-                self.logger.info('testing...')
-                class_acc = self.test(test_loader)
-                # self.writer.add_scalar('test/aux_acc', class_acc, i_iter)
-                self.writer.add_scalar('test/class_acc', class_acc, self.start_iter)
-                # if class_acc > self.best_acc:
-                #     self.best_acc = class_acc
-                # todo copy current model to best model
-                self.logger.info('Best testing accuracy: {:.2f} %'.format(class_acc))
-
-        self.logger.info('Best validation accuracy: {:.2f} %'.format(self.best_acc))
-        self.logger.info('Finished Training.')
 
     def save(self, path, ext):
         state = {"iter": self.start_iter + 1,
@@ -313,7 +246,105 @@ class AuxModel:
             self.scheduler.load_state_dict(checkpoint['scheduler_state'])
             self.start_iter = checkpoint['iter']
             self.best_acc = checkpoint['best_acc']
+            self.best_auc= checkpoint['best_auc']
             self.logger.info('Start iter: %d ' % self.start_iter)
+
+    def fine_tune(self, src_loader, val_loader, test_loader):
+        num_batches = len(src_loader)
+        print_freq = max(num_batches // self.config.training_num_print_epoch, 1)
+        start_epoch = self.start_iter // num_batches
+        num_epochs = self.config.num_epochs
+        self.model = Finetune(self.model)
+        self.model = self.model.to(self.device)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr, betas=(.5, .999))
+        self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
+        self.model.train()
+        for epoch in range(start_epoch, num_epochs):
+            batch_time = AverageMeter()
+            losses = AverageMeter()
+            top1 = AverageMeter()
+            top2 = AverageMeter()
+            for it, src_batch in enumerate(src_loader):
+                t = time.time()
+
+                self.optimizer.zero_grad()
+                src = src_batch
+                src = to_device(src, self.device)
+                src_imgs, src_cls_lbls, _, _, _, _,_ = src
+
+                self.optimizer.zero_grad()
+
+                src_main_logits = self.model(src_imgs)
+                #for AUC
+                smax = nn.Softmax(dim=1)
+                smax_out = smax(src_main_logits)
+                true_labels = src_cls_lbls.cpu().detach().numpy()
+                pred_trh = smax_out.cpu().detach().numpy()[:, 1]
+
+
+                src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
+                loss = src_main_loss
+
+                precision1_train, precision2_train = accuracy(src_main_logits, src_cls_lbls, topk=(1, 2))
+                top1.update(precision1_train[0], src_imgs.size(0))
+
+                AUC = roc_auc_score(true_labels, pred_trh)
+                top2.update(AUC, src_imgs.size(0))
+
+                loss.backward()
+                self.optimizer.step()
+
+                losses.update(loss.item(), src_imgs.size(0))
+
+                # measure elapsed time
+                batch_time.update(time.time() - t)
+
+                self.start_iter += 1
+
+                if self.start_iter % print_freq == 0:
+                    print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f}| acc:{:.3f}| AUC:{:.3f}| src_main: {:.3f} |' + '|{:4.2f} s/it'
+                    self.logger.info(print_string.format(epoch, self.start_iter,
+                                                         losses.avg,
+                                                         top1.avg,
+                                                         top2.avg,
+                                                         src_main_loss.item(),
+                                                         batch_time.avg))
+                    self.writer.add_scalar('losses/all_loss', losses.avg, self.start_iter)
+                    self.writer.add_scalar('losses/src_main_loss', src_main_loss, self.start_iter)
+            self.scheduler.step()
+            self.save(self.config.model_dir, 'last')
+
+            if val_loader is not None:
+                self.logger.info('validating...')
+                class_acc, auc = self.test(val_loader)
+                # self.writer.add_scalar('val/aux_acc', class_acc, i_iter)
+                self.writer.add_scalar('val/class_acc', class_acc, self.start_iter)
+                self.writer.add_scalar('val/auc', auc, self.start_iter)
+                if class_acc > self.best_acc:
+                    self.best_acc = class_acc
+                    self.save(self.config.best_model_dir, 'best_acc')
+                if auc > self.best_auc:
+                    self.best_auc = auc
+                    self.save(self.config.best_model_dir, 'best_auc')
+                    # todo copy current model to best model
+                self.logger.info('Best validation accuracy: {:.2f} %'.format(self.best_acc))
+                self.logger.info('Best validation auc: {:.2f} %'.format(self.best_auc))
+
+            if test_loader is not None:
+                self.logger.info('testing...')
+                class_acc, auc = self.test(test_loader)
+                # self.writer.add_scalar('test/aux_acc', class_acc, i_iter)
+                self.writer.add_scalar('test/class_acc', class_acc, self.start_iter)
+                self.writer.add_scalar('test/auc', auc, self.start_iter)
+                # if class_acc > self.best_acc:
+                #     self.best_acc = class_acc
+                # todo copy current model to best model
+                self.logger.info('testing accuracy: {:.2f} %'.format(class_acc))
+                self.logger.info('testing auc: {:.2f} %'.format(auc))
+
+        self.logger.info('Best validation accuracy: {:.2f} %'.format(self.best_acc))
+        self.logger.info('Finished Training.')
+
 
     def test(self, val_loader):
         val_loader_iterator = iter(val_loader)
@@ -335,7 +366,7 @@ class AuxModel:
                 imgs, cls_lbls, _, _, _, _,_ = data
                 # Get the inputs
 
-                logits = self.model(imgs, 'main_task')
+                logits = self.model(imgs)
 
                 if self.config.save_output == True:
                     smax = nn.Softmax(dim=1)
@@ -366,9 +397,9 @@ class AuxModel:
             soft_labels = soft_labels[1:, :]
             np.save('pred_' + self.config.mode + '_main3.npy', soft_labels)
             np.save('true_' + self.config.mode + '_main3.npy', true_labels)
-            stats(soft_labels, true_labels, opt_thresh=0.5)
+            auc = stats(soft_labels, true_labels, opt_thresh=0.5)
 
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total
         self.logger.info('class_acc: {:.2f} %'.format(class_acc))
-        return class_acc
+        return class_acc,auc
