@@ -2,7 +2,7 @@ import os
 class DefaultConfigs(object):
 
 
-    mode = 'train'
+    mode = 'test'
     encoder_name = 'resnet50'
     pretrained = False
     stain_normalized = True
@@ -12,7 +12,7 @@ class DefaultConfigs(object):
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'main_task': {'type': 'classification', 'n_classes': 2},
-             'jigsaw': {'type': 'classification', 'n_classes': 8},
+             'jigsaw': {'type': 'classification', 'n_classes': 12},
              'domain_classifier': {'type': 'classification', 'n_classes': 2},
              'hematoxylin': {'type': 'pixel', 'n_classes': 1}
              }
@@ -22,6 +22,7 @@ class DefaultConfigs(object):
     cache_dir = './test_hematoxylin2/cache'
     model_dir = './test_hematoxylin2/model'
     best_model_dir = './test_hematoxylin2/best_model'
+
     training_resume = ''
     training_num_print_epoch = 20
 
@@ -48,7 +49,9 @@ class DefaultConfigs(object):
     # base_data_path_unlabel_new = 'G://test_camelyon'
     pickle_path_test = './pickle_files/test.pickle'
     budget_test = 'test1'
+
     testing_model ='./test_hematoxylin/best_model/model_best.pth'
+
 
     save_output = True
     eval_batch_size = 128
