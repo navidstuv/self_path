@@ -7,6 +7,8 @@ from data.utils import center_crop, jigsaw_res
 from skimage.color import rgb2hed, gray2rgb
 import matplotlib.pyplot as plt
 from data import stainNorm_Reinhard
+from skimage.color import rgb2hed
+from skimage.exposure import rescale_intensity
 
 from albumentations.augmentations.transforms import CenterCrop
 import os
@@ -97,18 +99,31 @@ class Histodata(Dataset):
             jig_img = torch.from_numpy(jig_img).float()
             jig_img = jig_img.permute(2, 0, 1)
             jig_label = torch.from_numpy(np.array(jig_label)).long()
+
+        if 'hematoxylin' in config.task_names:
+            ihc_hed = rgb2hed(main_img)
+            hem_img = rescale_intensity(ihc_hed[:, :, 0], out_range=(0, 1))
+            hem_img = torch.from_numpy(np.array(hem_img)).long()
         main_img = preprocess_input (main_img.astype(np.float32))
         main_img = torch.from_numpy(main_img).float()
         main_img = main_img.permute(2, 0, 1)
         label = torch.from_numpy(np.array(label)).long()
-        if 'magnification' in config.task_names and 'jigsaw' not in config.task_names:
-            return main_img, label, aux_image_mag, aux_label_mag, -1, -1
-        elif 'jigsaw' in config.task_names and 'magnification' not in config.task_names:
-            return main_img, label, -1, -1, jig_img, jig_label
-        elif 'jigsaw' in config.task_names and 'magnification'  in config.task_names:
-            return main_img, label, aux_image_mag, aux_label_mag, jig_img, jig_label
+        if 'magnification' in config.task_names and 'jigsaw' not in config.task_names and 'hematoxylin' not in config.task_names:
+            return main_img, label, aux_image_mag, aux_label_mag, -1, -1, -1
+        elif 'jigsaw' in config.task_names and 'magnification' not in config.task_names and 'hematoxylin' not in config.task_names:
+            return main_img, label, -1, -1, jig_img, jig_label, -1
+        elif 'hematoxylin' in config.task_names and 'magnification' not in config.task_names and 'jigsaw' not in config.task_names:
+            return main_img, label, -1, -1, -1, -1, hem_img
+        elif 'hematoxylin' in config.task_names and 'magnification' in config.task_names and 'jigsaw' not in config.task_names:
+            return main_img, label, aux_image_mag, aux_label_mag, -1, -1, hem_img
+        elif 'hematoxylin' in config.task_names and 'jigsaw' in config.task_names and 'magnification' not in config.task_names:
+            return main_img, label, -1, -1, jig_img, jig_label, hem_img
+        elif 'magnification' in config.task_names and 'jigsaw' in config.task_names and 'hematoxylin' not in config.task_names:
+            return main_img, label, aux_image_mag, aux_label_mag, jig_img, jig_label, -1
+        elif 'jigsaw' in config.task_names and 'magnification'  in config.task_names and 'hematoxylin'  in config.task_names:
+            return main_img, label, aux_image_mag, aux_label_mag, jig_img, jig_label, hem_img
         else:
-            return main_img, label, -1, -1, -1, -1
+            return main_img, label, -1, -1, -1, -1, -1
 
     def __len__(self):
             return len(self.imgs)
@@ -160,6 +175,8 @@ class Histodata_unlabel_domain_adopt(Dataset):
             filename = self.imgs_unlabel[index]
             img = cv2.imread(os.path.join(self.path, filename))
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            if config.stain_normalized:
+                img = self.n.transform(img)
 
             # resize image
             width = int(img.shape[1] * 25 / 100)
@@ -181,9 +198,6 @@ class Histodata_unlabel_domain_adopt(Dataset):
                 if mag=='10x':
                     aux_image_mag = cv2.resize(img, (128, 128), interpolation=cv2.INTER_CUBIC)
                     aux_label_mag = 2
-                if self.augment:
-                    aux_image_mag = self.augment(aux_image_mag.shape)(image=aux_image_mag)
-                    aux_image_mag = aux_image_mag['image']
 
                 if config.stain_normalized:
                     aux_image_mag = self.n.transform(aux_image_mag)
@@ -197,18 +211,29 @@ class Histodata_unlabel_domain_adopt(Dataset):
                 jig_img = torch.from_numpy(jig_img).float()
                 jig_img = jig_img.permute(2, 0, 1)
                 jig_label = torch.from_numpy(np.array(jig_label)).long()
-            if config.stain_normalized:
-                main_img = self.n.transform(main_img)
+
+            if 'hematoxylin' in config.task_names:
+                ihc_hed = rgb2hed(main_img)
+                hem_img = rescale_intensity(ihc_hed[:, :, 0], out_range=(0, 1))
+                hem_img = torch.from_numpy(np.array(hem_img)).long()
             main_img = preprocess_input (main_img.astype(np.float32))
             main_img = torch.from_numpy(main_img).float()
             main_img = main_img.permute(2, 0, 1)
 
-            if 'magnification' in config.task_names and 'stain' not in config.task_names:
-                return main_img, -1, aux_image_mag, aux_label_mag, -1, -1
-            elif 'jigsaw' in config.task_names and 'magnification' not in config.task_names:
-                return main_img, -1, -1, -1, jig_img, jig_label
-            elif 'jigsaw' in config.task_names and 'magnification' in config.task_names:
-                return main_img, -1, aux_image_mag, aux_label_mag, jig_img, jig_label
+            if 'magnification' in config.task_names and 'jigsaw' not in config.task_names and 'hematoxylin' not in config.task_names:
+                return main_img,-1, aux_image_mag, aux_label_mag, -1, -1, -1
+            elif 'jigsaw' in config.task_names and 'magnification' not in config.task_names and 'hematoxylin' not in config.task_names:
+                return main_img, -1, -1, -1, jig_img, jig_label, -1
+            elif 'hematoxylin' in config.task_names and 'magnification' not in config.task_names and 'jigsaw' not in config.task_names:
+                return main_img, -1, -1, -1, -1, -1, hem_img
+            elif 'hematoxylin' in config.task_names and 'magnification' in config.task_names and 'jigsaw' not in config.task_names:
+                return main_img, -1, aux_image_mag, aux_label_mag, -1, -1, hem_img
+            elif 'hematoxylin' in config.task_names and 'jigsaw' in config.task_names and 'magnification' not in config.task_names:
+                return main_img, -1, -1, -1, jig_img, jig_label, hem_img
+            elif 'magnification' in config.task_names and 'jigsaw' in config.task_names and 'hematoxylin' not in config.task_names:
+                return main_img,-1, aux_image_mag, aux_label_mag, jig_img, jig_label, -1
+            elif 'jigsaw' in config.task_names and 'magnification' in config.task_names and 'hematoxylin' in config.task_names:
+                return main_img,-1, aux_image_mag, aux_label_mag, jig_img, jig_label, hem_img
             else:
                 return main_img, -1, -1, -1, -1, -1
         else:

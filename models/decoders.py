@@ -4,6 +4,7 @@ Pytorch implementation of segmentation models,
 from torch import nn
 import torch
 from torch.nn import functional as F
+from torch.nn.utils import weight_norm
 
 
 class PSPModule(nn.Module):
@@ -153,9 +154,21 @@ class Classifier(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(int(input_dim/2), n_classes),
         )
+        self.fc = nn.Linear(int(input_dim), n_classes)
         self.maxpool = nn.AdaptiveMaxPool2d(1)
     def forward(self, x):
         x = self.maxpool(x)
         x = x.reshape(x.size(0), -1)
         x = self.fc(x)
         return x
+
+class Disc128_classifier(nn.Module):
+    def __init__(self, input_dim, n_classes):
+        super(Disc128_classifier, self).__init__()
+        self.fc = weight_norm(nn.Linear(input_dim, n_classes))
+    def forward(self, inter_layer, req_inter_layer=False):
+        logits = self.fc(inter_layer)
+        if req_inter_layer:
+            return logits, inter_layer
+        else:
+            return logits

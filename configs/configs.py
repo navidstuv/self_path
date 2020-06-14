@@ -13,26 +13,29 @@ class DefaultConfigs(object):
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'main_task': {'type': 'classification', 'n_classes': 2},
              'jigsaw': {'type': 'classification', 'n_classes': 12},
-             'domain_classifier': {'type': 'classification', 'n_classes': 2}}
-    loss_weight = {'magnification': 1, 'domain_classifier': 1, 'main_task': 1, 'jigsaw': 1}
+             'domain_classifier': {'type': 'classification', 'n_classes': 2},
+             'hematoxylin': {'type': 'pixel', 'n_classes': 1}
+             }
+    loss_weight = {'magnification': 1, 'domain_classifier': 1, 'main_task': 1, 'jigsaw': 1, 'hematoxylin': 1}
 
-    log_dir = './test_jigsaw/logs'
-    cache_dir = './test_jigsaw/cache'
-    model_dir = './test_jigsaw/model'
-    best_model_dir = './test_jigsaw/best_model'
+    log_dir = './test_hematoxylin2/logs'
+    cache_dir = './test_hematoxylin2/cache'
+    model_dir = './test_hematoxylin2/model'
+    best_model_dir = './test_hematoxylin2/best_model'
+
     training_resume = ''
     training_num_print_epoch = 20
 
 
     #source domain
-    src_batch_size = 128
+    src_batch_size = 64
     # base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
     base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
     pickle_path = 'pickle_files/training_cam.pickle'
     budget = 'training_cam1'
 
     #target domain
-    tar_batch_size = 128
+    tar_batch_size = 64
     # base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
     base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
     pickle_path_unlabel= './pickle_files/training.pickle'
@@ -46,9 +49,11 @@ class DefaultConfigs(object):
     # base_data_path_unlabel_new = 'G://test_camelyon'
     pickle_path_test = './pickle_files/test.pickle'
     budget_test = 'test1'
-    testing_model ='/media/navid/HDD1/Back_up/git-files/Multi_task_domain_adapt/test_jigsaw/best_model/model_best.pth'
 
-    save_output = False
+    testing_model ='./test_hematoxylin/best_model/model_best.pth'
+
+
+    save_output = True
     eval_batch_size = 128
     test_batch_size = 128
 
