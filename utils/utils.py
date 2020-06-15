@@ -15,6 +15,10 @@ from sklearn.metrics import precision_recall_curve, precision_score, recall_scor
 import matplotlib.pyplot as plt
 from inspect import signature
 from collections import OrderedDict
+from sklearn.cluster import KMeans
+from sklearn.mixture import GaussianMixture
+from sklearn import random_projection
+import hdbscan
 
 
 def get_args():
@@ -292,3 +296,20 @@ def save_output_img(imgs,path, prefix, num):
 
 def worker_init_fn(worker_id):
     np.random.seed(np.random.get_state()[1][0] + worker_id)
+
+def kmean(train_features, test_feature):
+    kmeans = KMeans(n_clusters=2, random_state=0)
+    preds = kmeans.fit_predict(train_features)
+    return preds
+def GMM(train_features, test_feature):
+    gmm = GaussianMixture(n_components=2, random_state=0).fit(train_features)
+    probs = gmm.predict_proba(test_feature)
+    return probs
+def HDBscan(train_features):
+    clusterer = hdbscan.HDBSCAN(min_cluster_size=2, gen_min_span_tree=True)
+    preds = clusterer.fit_predict(train_features)
+    return preds
+def random_proj(features):
+    transformer = random_projection.GaussianRandomProjection(n_components=2)
+    features_new = transformer.fit_transform(features)
+    return features_new

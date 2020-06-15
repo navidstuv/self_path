@@ -2,20 +2,20 @@ import os
 class DefaultConfigs(object):
 
 
-    mode = 'train'# if mode fine-tune is used weights should be loaded
+    mode = 'feature_extractor'# if mode fine-tune is used weights should be loaded
     encoder_name = 'resnet50'
     pretrained = False
     stain_normalized = True
     augmentation = True
     exp_name = ' cam-oscc'
-    task_names = ['hematoxylin']#['hematoxylin','magnification', 'jigsaw', , eosin]
+    task_names = ['main']#['hematoxylin','magnification', 'jigsaw', , eosin]
     aux_task_names =task_names
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'jigsaw': {'type': 'classification', 'n_classes': 12},
-             'domain_classifier': {'type': 'classification', 'n_classes': 2},
+             'main': {'type': 'classification', 'n_classes': 2},
              'hematoxylin': {'type': 'pixel', 'n_classes': 1}
              }
-    loss_weight = {'magnification': 1, 'domain_classifier': 1, 'jigsaw': 1, 'hematoxylin': 1}
+    loss_weight = {'magnification': 1, 'domain_classifier': 1, 'jigsaw': 1, 'hematoxylin': 1, 'main':1}
 
     log_dir = './hematoxylin_self/logs'
     cache_dir = './hematoxylin_self/cache'
@@ -49,7 +49,7 @@ class DefaultConfigs(object):
     pickle_path_test = './pickle_files/test.pickle'
     budget_test = 'test1'
 
-    testing_model ='./test_hematoxylin/best_model/model_best.pth'
+    testing_model ='/media/navid/HDD1/Back_up/experiments_log/domain_adoptation/main_normalized2/best_model/model_best.pth'
 
 
     save_output = True
@@ -60,7 +60,7 @@ class DefaultConfigs(object):
 
     random_seed = 33
     num_epochs = 100
-    gpus = [0]
+    gpus = [1]
     lr =  0.001
 
 

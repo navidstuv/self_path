@@ -97,6 +97,7 @@ class AuxModel:
         else:
             self.load(os.path.join(self.config.testing_model))
 
+
     def entropy_loss(self, x):
         return torch.sum(-F.softmax(x, 1) * F.log_softmax(x, 1), 1).mean()
 
@@ -166,13 +167,13 @@ class AuxModel:
             src_aux_loss = {}
 
             if 'magnification' in self.config.task_names:
-                src_aux_mag_logits = self.model(src_aux_mag_imgs, 'magnification')
+                _,src_aux_mag_logits = self.model(src_aux_mag_imgs, 'magnification')
                 src_aux_loss['magnification'] = self.class_loss_func(src_aux_mag_logits, src_aux_mag_lbls)
                 loss += src_aux_loss['magnification'] * self.config.loss_weight[
                     'magnification']  # todo: magnification weight
 
             if 'jigsaw' in self.config.task_names:
-                src_aux_jigsaw_logits = self.model(src_aux_jigsaw_imgs, 'jigsaw')
+                _,src_aux_jigsaw_logits = self.model(src_aux_jigsaw_imgs, 'jigsaw')
                 src_aux_loss['jigsaw'] = self.class_loss_func(src_aux_jigsaw_logits, src_aux_jigsaw_lbls)
                 loss += src_aux_loss['jigsaw'] * self.config.loss_weight['jigsaw']  # todo: main task weight
 
@@ -345,6 +346,43 @@ class AuxModel:
         self.logger.info('Best validation accuracy: {:.2f} %'.format(self.best_acc))
         self.logger.info('Finished Training.')
 
+    def feature_extractor(self, val_loader):
+        val_loader_iterator = iter(val_loader)
+        num_val_iters = len(val_loader)
+        tt = tqdm(range(num_val_iters), total=num_val_iters, desc="Validating")
+        kk = 1
+        aux_correct = 0
+        class_correct = 0
+        total = 0
+        soft_labels = np.zeros((1, 2))
+        true_labels = []
+        features = np.empty((1,512))
+
+
+        self.model.eval()
+        with torch.no_grad():
+            for cur_it in tt:
+
+                data = next(val_loader_iterator)
+                data = to_device(data, self.device)
+                imgs, cls_lbls, _, _, _, _,_ = data
+                # Get the inputs
+
+                feature, _ = self.model(imgs, self.config.task_names[0])
+
+                if self.config.save_output == True:
+
+                    maxpool = nn.AdaptiveMaxPool2d(1)
+                    x = maxpool(feature)
+                    x = x.reshape(x.size(0), -1)
+                    true_labels = np.append(true_labels, cls_lbls.cpu().numpy())
+                    features = np.append(features, x.cpu().numpy(), axis=0)
+                    kk += 1
+            tt.close()
+        if self.config.save_output == True:
+            np.save('true_train_mag_' + self.config.mode + '.npy', true_labels)
+            np.save('features_train_mag_' + self.config.mode + '.npy', features[1:,:])
+
 
     def test(self, val_loader):
         val_loader_iterator = iter(val_loader)
@@ -373,12 +411,12 @@ class AuxModel:
                     smax_out = smax(logits)
                     soft_labels = np.concatenate((soft_labels, smax_out.cpu().numpy()), axis=0)
                     true_labels = np.append(true_labels, cls_lbls.cpu().numpy())
-                    pred_trh = smax_out.cpu().numpy()[:, 1]
-                    pred_trh[pred_trh >= 0.5] = 1
-                    pred_trh[pred_trh < 0.5] = 0
-                    compare = cls_lbls.cpu().numpy() - pred_trh
-                    FP_idx = np.where(compare == -1)
-                    FN_idx = np.where(compare == 1)
+                    # pred_trh = smax_out.cpu().numpy()[:, 1]
+                    # pred_trh[pred_trh >= 0.5] = 1
+                    # pred_trh[pred_trh < 0.5] = 0
+                    # compare = cls_lbls.cpu().numpy() - pred_trh
+                    # FP_idx = np.where(compare == -1)
+                    # FN_idx = np.where(compare == 1)
                     # FP_imgs = imgs.cpu().numpy()[FP_idx, ...]
                     # FN_imgs = imgs.cpu().numpy()[FN_idx, ...]
                     # save_output_img(FP_imgs[0, ...], 'FP_images', 'FP', kk * imgs.shape[0])
@@ -395,8 +433,8 @@ class AuxModel:
             tt.close()
         if self.config.save_output == True:
             soft_labels = soft_labels[1:, :]
-            np.save('pred_' + self.config.mode + '_main3.npy', soft_labels)
-            np.save('true_' + self.config.mode + '_main3.npy', true_labels)
+            np.save('pred_' + self.config.mode + '.npy', soft_labels)
+            np.save('true_' + self.config.mode + '.npy', true_labels)
             auc = stats(soft_labels, true_labels, opt_thresh=0.5)
 
         # aux_acc = 100 * float(aux_correct) / total

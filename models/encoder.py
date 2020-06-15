@@ -82,7 +82,7 @@ class Finetune(nn.Module):
         self.model = model
         for parameter in self.model.parameters():
             parameter.requires_grad = False
-        self.fc = nn.Linear(int(2048), 2)
+        self.fc = nn.Linear(int(512), 2)
         self.maxpool = nn.AdaptiveMaxPool2d(1)
 
 
@@ -90,8 +90,8 @@ class Finetune(nn.Module):
         # it soeadnt matter what task name is because we are just usin encoder
         x, _ = self.model(x, config.task_names[0])
         x = self.maxpool(x)
-        x = x.reshape(x.size(0), -1)
-        x = self.fc(x)
+        feature = x.reshape(x.size(0), -1)
+        x = self.fc(feature)
         return x
 
         detach = int(self.detach) if isinstance(self.detach, bool) else np.random.binomial(1, self.detach)

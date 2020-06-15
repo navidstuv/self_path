@@ -36,6 +36,8 @@ def main():
         model.test(val_loader)
     elif config.mode == 'test':
         model.test(test_loader)
+    elif config.mode == 'feature_extractor':
+        model.feature_extractor(val_loader)
     elif config.mode == 'fine-tune':
         model.fine_tune(src_loader, val_loader, test_loader)
 
