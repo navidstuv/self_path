@@ -192,55 +192,55 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
     print('max f1 score:{} optimal thresh: {}'.format(np.amax(f1), thresholds[np.where(f1 == np.amax(f1))]))
     average_precision = average_precision_score(true_labels, tumour_class)
 
-    plt.figure(figsize=(7, 8))
-    f_scores = np.linspace(0.2, 0.9, num=5)
-    lines = []
-    labels = []
-    for f_score in f_scores:
-        x = np.linspace(0.01, 1)
-        y = f_score * x / (2 * x - f_score)
-        l, = plt.plot(x[y >= 0], y[y >= 0], color='gray', alpha=0.2)
-        plt.annotate('f1={0:0.1f}'.format(f_score), xy=(0.9, y[45] + 0.02))
+    # plt.figure(figsize=(7, 8))
+    # f_scores = np.linspace(0.2, 0.9, num=5)
+    # lines = []
+    # labels = []
+    # for f_score in f_scores:
+    #     x = np.linspace(0.01, 1)
+    #     y = f_score * x / (2 * x - f_score)
+    #     l, = plt.plot(x[y >= 0], y[y >= 0], color='gray', alpha=0.2)
+    #     plt.annotate('f1={0:0.1f}'.format(f_score), xy=(0.9, y[45] + 0.02))
+    #
+    # lines.append(l)
+    # labels.append('iso-f1 curves')
+    #
+    # l, = plt.plot(recall, precision, color='turquoise', lw=2)
+    # lines.append(l)
+    # labels.append('Precision-recall for class Tumour (area = {:0.4f})'.format(average_precision))
+    #
+    # l, = plt.plot(recall, f1, color='cornflowerblue', lw=2)
+    # lines.append(l)
+    # labels.append(
+    #     'max f1 score:{:0.2f} optimal thresh: {:0.2f}'.format(np.amax(f1), thresholds[np.where(f1 == np.amax(f1))][0]))
+    #
+    # fig = plt.gcf()
+    # fig.subplots_adjust(bottom=0.25)
+    # plt.xlim([0.0, 1.0])
+    # plt.ylim([0.0, 1.05])
+    # plt.xlabel('Recall')
+    # plt.ylabel('Precision')
+    # plt.title('Precision-Recall curve')
+    # plt.legend(lines, labels, loc=(0, -.38), prop=dict(size=14))
 
-    lines.append(l)
-    labels.append('iso-f1 curves')
+    # # ---------------------------------------------
+    # precision, recall, _ = precision_recall_curve(true_labels, tumour_class)
+    #
+    # # In matplotlib < 1.5, plt.fill_between does not have a 'step' argument
+    # step_kwargs = ({'step': 'post'}
+    #                if 'step' in signature(plt.fill_between).parameters
+    #                else {})
+    # plt.step(recall, precision, color='b', alpha=0.2,
+    #          where='post')
+    # plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
 
-    l, = plt.plot(recall, precision, color='turquoise', lw=2)
-    lines.append(l)
-    labels.append('Precision-recall for class Tumour (area = {:0.4f})'.format(average_precision))
-
-    l, = plt.plot(recall, f1, color='cornflowerblue', lw=2)
-    lines.append(l)
-    labels.append(
-        'max f1 score:{:0.2f} optimal thresh: {:0.2f}'.format(np.amax(f1), thresholds[np.where(f1 == np.amax(f1))][0]))
-
-    fig = plt.gcf()
-    fig.subplots_adjust(bottom=0.25)
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.title('Precision-Recall curve')
-    plt.legend(lines, labels, loc=(0, -.38), prop=dict(size=14))
-
-    # ---------------------------------------------
-    precision, recall, _ = precision_recall_curve(true_labels, tumour_class)
-
-    # In matplotlib < 1.5, plt.fill_between does not have a 'step' argument
-    step_kwargs = ({'step': 'post'}
-                   if 'step' in signature(plt.fill_between).parameters
-                   else {})
-    plt.step(recall, precision, color='b', alpha=0.2,
-             where='post')
-    plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
-
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.ylim([0.0, 1.05])
-    plt.xlim([0.0, 1.0])
-    plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format(
-        average_precision_score(true_labels, tumour_class)))
-    plt.show()
+    # plt.xlabel('Recall')
+    # plt.ylabel('Precision')
+    # plt.ylim([0.0, 1.05])
+    # plt.xlim([0.0, 1.0])
+    # plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format(
+    #     average_precision_score(true_labels, tumour_class)))
+    # plt.show()
     Auc = roc_auc_score(true_labels, tumour_class)
     # tumour_class[tumour_class>threshold] = 1
     # tumour_class[tumour_class <= threshold] = 0
@@ -297,13 +297,13 @@ def save_output_img(imgs,path, prefix, num):
 def worker_init_fn(worker_id):
     np.random.seed(np.random.get_state()[1][0] + worker_id)
 
-def kmean(train_features, test_feature):
+def kmean(train_features):
     kmeans = KMeans(n_clusters=2, random_state=0)
     preds = kmeans.fit_predict(train_features)
     return preds
-def GMM(train_features, test_feature):
+def GMM(train_features):
     gmm = GaussianMixture(n_components=2, random_state=0).fit(train_features)
-    probs = gmm.predict_proba(test_feature)
+    probs = gmm.predict_proba(train_features)
     return probs
 def HDBscan(train_features):
     clusterer = hdbscan.HDBSCAN(min_cluster_size=2, gen_min_span_tree=True)
