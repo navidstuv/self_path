@@ -95,6 +95,8 @@ class AuxModel:
         elif config.mode == 'val':
             self.load(os.path.join(self.config.testing_model))
         else:
+            self.model = Finetune(self.model)
+            self.model = self.model.to(self.device)
             self.load(os.path.join(self.config.testing_model))
 
 
@@ -356,7 +358,7 @@ class AuxModel:
         total = 0
         soft_labels = np.zeros((1, 2))
         true_labels = []
-        features = np.empty((1,512))
+        features = np.empty((1,2048))
 
 
         self.model.eval()
@@ -380,8 +382,8 @@ class AuxModel:
                     kk += 1
             tt.close()
         if self.config.save_output == True:
-            np.save('true_train_mag_' + self.config.mode + '.npy', true_labels)
-            np.save('features_train_mag_' + self.config.mode + '.npy', features[1:,:])
+            np.save('true_train_main_' + self.config.mode + '.npy', true_labels)
+            np.save('features_train_main_' + self.config.mode + '.npy', features[1:,:])
 
 
     def test(self, val_loader):
