@@ -39,7 +39,7 @@ def main():
     elif config.mode == 'feature_extractor':
         model.feature_extractor(val_loader)
     elif config.mode == 'fine-tune':
-        model.fine_tune(src_loader, val_loader, test_loader)
+        model.fine_tune(src_loader, val_loader, None)
 
 
 if __name__ == '__main__':
