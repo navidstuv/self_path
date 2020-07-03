@@ -81,7 +81,8 @@ class AuxModel:
             # set up optimizer, lr scheduler and loss functions
 
             self.lr = config.lr
-            self.load(os.path.join(config.training_resume))
+            if self.config.task_pretrained == True:
+                self.load(os.path.join(config.training_resume))
             # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
             # self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
 
@@ -435,8 +436,8 @@ class AuxModel:
             tt.close()
         if self.config.save_output == True:
             soft_labels = soft_labels[1:, :]
-            np.save('pred_' + self.config.mode + '.npy', soft_labels)
-            np.save('true_' + self.config.mode + '.npy', true_labels)
+            # np.save('pred_' + self.config.mode + '.npy', soft_labels)
+            # np.save('true_' + self.config.mode + '.npy', true_labels)
             auc = stats(soft_labels, true_labels, opt_thresh=0.5)
 
         # aux_acc = 100 * float(aux_correct) / total
