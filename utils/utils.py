@@ -172,15 +172,15 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
     # GT = test_generator.classes
     # tumour_class=  np.array(tumour_class)
     # threshold = 0.5
-    fpr, tpr, thresholds = roc_curve(true_labels, tumour_class, pos_label=1)
-    plt.figure(1)
-    plt.plot([0, 1], [0, 1], 'k--')
-    plt.plot(fpr, tpr, label='Tumor')
-    plt.xlabel('False positive rate')
-    plt.ylabel('True positive rate')
-    plt.title('ROC curve')
-    plt.legend(loc='best')
-    plt.show()
+    # fpr, tpr, thresholds = roc_curve(true_labels, tumour_class, pos_label=1)
+    # plt.figure(1)
+    # plt.plot([0, 1], [0, 1], 'k--')
+    # plt.plot(fpr, tpr, label='Tumor')
+    # plt.xlabel('False positive rate')
+    # plt.ylabel('True positive rate')
+    # plt.title('ROC curve')
+    # plt.legend(loc='best')
+    # plt.show()
     # ---------------------------------------------
 
     precision, recall, thresholds = precision_recall_curve(true_labels,
