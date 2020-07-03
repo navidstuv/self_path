@@ -80,8 +80,8 @@ class Finetune(nn.Module):
     def __init__(self, model):
         super(Finetune, self).__init__()
         self.model = model
-        for parameter in self.model.parameters():
-            parameter.requires_grad = False
+        # for parameter in self.model.parameters():
+        #     parameter.requires_grad = False
         self.fc = nn.Linear(int(512), 2)
         self.maxpool = nn.AdaptiveMaxPool2d(1)
 
