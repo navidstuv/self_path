@@ -53,9 +53,11 @@ class Histodata(Dataset):
         for image_name in data_budget[budget]['patches']['Normal']:
             normal_path.append(os.path.join('Normal', image_name))
             normal_label.append(0)
+        print(f'number of normal classes: {len(normal_label)}')
         for image_name in data_budget[budget]['patches']['Tumour']:
             tumour_path.append(os.path.join('Tumour', image_name))
             tumour_label.append(1)
+        print(f'number of tumour classes: {len(tumour_label)}')
         self.imgs = np.append(normal_path,tumour_path)
         self.labels = np.append(normal_label,tumour_label)
 
@@ -154,9 +156,11 @@ class Histodata_unlabel_domain_adopt(Dataset):
         for image_name in data_budget[budget]['patches']['Normal']:
             normal_path.append(os.path.join('Normal', image_name))
             normal_label.append(0)
+        print(f'number of normal classes for unlabel : {len(normal_label)}')
         for image_name in data_budget[budget]['patches']['Tumour']:
             tumour_path.append(os.path.join('Tumour', image_name))
             tumour_label.append(1)
+        print(f'number of tumour classes for unlabel : {len(tumour_label)}')
         self.imgs = np.append(normal_path,tumour_path)
         self.labels = np.append(normal_label,tumour_label)
 
