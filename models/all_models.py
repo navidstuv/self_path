@@ -96,7 +96,7 @@ class AuxModel:
             self.optimizer.zero_grad()
             src = src_batch
             src = to_device(src, self.device)
-            src_imgs, src_cls_lbls, _, _, _, _ = src
+            src_imgs, src_cls_lbls, _, _, _, _,_= src
 
             self.optimizer.zero_grad()
 
