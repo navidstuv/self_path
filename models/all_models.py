@@ -11,6 +11,7 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR
 from utils.utils import stats
+import wandb
 
 # custom modules
 from schedulers import get_scheduler
@@ -70,6 +71,7 @@ class AuxModel:
             self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9, weight_decay=config.weight_decay)
             # self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
             self.scheduler = MultiStepLR(self.optimizer, milestones=[50,100,150,300], gamma=0.1)
+            wandb.watch(self.model)
 
             self.class_loss_func = nn.CrossEntropyLoss()
             self.pixel_loss = nn.L1Loss()
@@ -94,6 +96,8 @@ class AuxModel:
         self.model.train()
         batch_time = AverageMeter()
         losses = AverageMeter()
+        main_loss = AverageMeter()
+
         top1 = AverageMeter()
 
         for it, src_batch in enumerate(src_loader):
@@ -109,6 +113,7 @@ class AuxModel:
             src_main_logits = self.model(src_imgs, 'main_task')
             src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
             loss = src_main_loss * self.config.loss_weight['main_task']
+            main_loss.update(loss.item(), src_imgs.size(0))
 
             precision1_train, precision2_train = accuracy(src_main_logits, src_cls_lbls, topk=(1, 2))
             top1.update(precision1_train[0], src_imgs.size(0))
@@ -128,7 +133,7 @@ class AuxModel:
                 self.logger.info(print_string.format(epoch, self.start_iter,
                                                      losses.avg,
                                                      top1.avg,
-                                                     src_main_loss.item(),
+                                                     main_loss.avg(),
                                                      batch_time.avg))
                 self.writer.add_scalar('losses/all_loss', losses.avg, self.start_iter)
                 self.writer.add_scalar('losses/src_main_loss', src_main_loss, self.start_iter)
@@ -347,6 +352,9 @@ class AuxModel:
                 # Get the inputs
 
                 logits = self.model(imgs, 'main_task')
+                test_loss = self.class_loss_func(logits, cls_lbls)
+                wandb.log({
+                    "Test Loss": test_loss})
 
                 if self.config.save_output == True:
                     smax = nn.Softmax(dim=1)
@@ -382,4 +390,7 @@ class AuxModel:
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total
         self.logger.info('class_acc: {:.2f} %'.format(class_acc))
+        wandb.log({
+            "Test acc": class_acc,
+            "Test AUC": AUC})
         return class_acc, AUC
