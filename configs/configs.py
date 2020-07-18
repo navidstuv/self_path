@@ -1,7 +1,6 @@
 import os
 class DefaultConfigs(object):
 
-
     mode = 'train'
     encoder_name = 'resnet50'
     pretrained = False
@@ -18,10 +17,22 @@ class DefaultConfigs(object):
              }
     loss_weight = {'magnification': 1, 'domain_classifier': 1, 'main_task': 1, 'jigsaw': 1, 'hematoxylin': 1}
 
-    log_dir = './exp/main0.05/logs'
-    cache_dir = './exp/main0.05/cache'
-    model_dir = './exp/main0.05/model'
-    best_model_dir = './exp/main0.05/best_model'
+    annotation_budget = 0.2
+
+    log_dir = './exp/'
+    cache_dir = './exp/'
+    model_dir = './exp/'
+    best_model_dir = './exp/'
+    for task_name in task_names:
+        log_dir = log_dir +'_' +task_name
+        cache_dir = cache_dir +'_' +task_name
+        model_dir = model_dir +'_' +task_name
+        best_model_dir = best_model_dir +'_' +task_name
+    log_dir = log_dir + str(annotation_budget)+'/logs'
+    cache_dir = cache_dir + str(annotation_budget)+'/cache_dir'
+    model_dir = model_dir + str(annotation_budget)+'/model_dir'
+    best_model_dir = best_model_dir + str(annotation_budget)+'/best_model_dir'
+
 
     training_resume = ''
     training_num_print_epoch = 20
@@ -32,7 +43,7 @@ class DefaultConfigs(object):
     # base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
     base_data_path = '/media/navid/SeagateBackupPlusDrive/512all'
     pickle_path = 'pickle_files/training_balanced.pickle'
-    budget = 'training0.05'
+    budget = 'training' + str(annotation_budget)
 
     #target domain
     tar_batch_size = 64
@@ -61,7 +72,7 @@ class DefaultConfigs(object):
 
     random_seed = 33
     num_epochs = 300
-    gpus = [0]
+    gpus = [1]
     lr =  0.1
     weight_decay = 10e-3
 
