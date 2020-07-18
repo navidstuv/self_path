@@ -18,10 +18,10 @@ class DefaultConfigs(object):
              }
     loss_weight = {'magnification': 1, 'domain_classifier': 1, 'main_task': 1, 'jigsaw': 1, 'hematoxylin': 1}
 
-    log_dir = './test_main_semi0.2/logs'
-    cache_dir = './test_main_semi0.2/cache'
-    model_dir = './test_main_semi0.2/model'
-    best_model_dir = './test_main_semi0.2/best_model'
+    log_dir = './exp/main0.05/logs'
+    cache_dir = './exp/main0.05/cache'
+    model_dir = './exp/main0.05/model'
+    best_model_dir = './exp/main0.05/best_model'
 
     training_resume = ''
     training_num_print_epoch = 20
@@ -32,7 +32,7 @@ class DefaultConfigs(object):
     # base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
     base_data_path = '/media/navid/SeagateBackupPlusDrive/512all'
     pickle_path = 'pickle_files/training_balanced.pickle'
-    budget = 'training0.2'
+    budget = 'training0.05'
 
     #target domain
     tar_batch_size = 64
@@ -50,7 +50,7 @@ class DefaultConfigs(object):
     pickle_path_test = './pickle_files/test_balanced.pickle'
     budget_test = 'test1'
 
-    testing_model ='./test_magnification_semi0.05/best_model/model_best.pth'
+    testing_model ='./test_main_semi0.2/best_model/model_best.pth'
 
 
     save_output = True
@@ -60,9 +60,10 @@ class DefaultConfigs(object):
 
 
     random_seed = 33
-    num_epochs = 100
+    num_epochs = 300
     gpus = [0]
-    lr =  0.001
+    lr =  0.1
+    weight_decay = 10e-3
 
 
 

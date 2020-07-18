@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
-from torch.optim.lr_scheduler import _LRScheduler
+from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR
 from utils.utils import stats
 
 # custom modules
@@ -23,6 +23,9 @@ from utils.utils import to_device, make_inf_dl, save_output_img
 # summary
 from tensorboardX import SummaryWriter
 
+def get_lr(optimizer):
+    for param_group in optimizer.param_groups:
+        return param_group['lr']
 
 class LinearRampdown(_LRScheduler):
     def __init__(self, opt, rampdown_from=1000, rampdown_till=1200, last_epoch=-1):
@@ -57,13 +60,16 @@ class AuxModel:
             self.model = nn.DataParallel(self.model)
         self.model = self.model.to(self.device)
         self.best_acc = 0
+        self.best_AUC = 0
 
         if config.mode == 'train':
             # set up optimizer, lr scheduler and loss functions
 
             lr = config.lr
-            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
-            self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
+            # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
+            self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9, weight_decay=config.weight_decay)
+            # self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
+            self.scheduler = MultiStepLR(self.optimizer, milestones=[50,100,150,300], gamma=0.1)
 
             self.class_loss_func = nn.CrossEntropyLoss()
             self.pixel_loss = nn.L1Loss()
@@ -264,17 +270,22 @@ class AuxModel:
                 self.train_epoch_main_task(src_loader, tar_loader, epoch, print_freq)
             else:
                 self.train_epoch_all_tasks(src_loader, tar_loader, epoch, print_freq)
+            self.logger.info('learning rate: %f ' % get_lr(self.optimizer))
             # validation
             self.save(self.config.model_dir, 'last')
 
+
             if val_loader is not None:
                 self.logger.info('validating...')
-                class_acc = self.test(val_loader)
+                class_acc, AUC = self.test(val_loader)
                 # self.writer.add_scalar('val/aux_acc', class_acc, i_iter)
                 self.writer.add_scalar('val/class_acc', class_acc, self.start_iter)
                 if class_acc > self.best_acc:
                     self.best_acc = class_acc
-                    self.save(self.config.best_model_dir, 'best')
+                    self.save(self.config.best_model_dir, 'best_acc')
+                if AUC > self.best_AUC:
+                    self.best_AUC = AUC
+                    self.save(self.config.best_model_dir, 'best_AUC')
                     # todo copy current model to best model
                 self.logger.info('Best validation accuracy: {:.2f} %'.format(self.best_acc))
 
@@ -362,13 +373,13 @@ class AuxModel:
                 total += imgs.size(0)
 
             tt.close()
-        if self.config.save_output == True:
-            soft_labels = soft_labels[1:, :]
-            np.save('pred_' + self.config.mode + '_main3.npy', soft_labels)
-            np.save('true_' + self.config.mode + '_main3.npy', true_labels)
-            stats(soft_labels, true_labels, opt_thresh=0.5)
+        # if self.config.save_output == True:
+        soft_labels = soft_labels[1:, :]
+            # np.save('pred_' + self.config.mode + '_main3.npy', soft_labels)
+            # np.save('true_' + self.config.mode + '_main3.npy', true_labels)
+        AUC = stats(soft_labels, true_labels, opt_thresh=0.5)
 
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total
         self.logger.info('class_acc: {:.2f} %'.format(class_acc))
-        return class_acc
+        return class_acc, AUC
