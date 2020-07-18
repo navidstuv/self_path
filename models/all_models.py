@@ -11,7 +11,6 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR
 from utils.utils import stats
-import wandb
 
 # custom modules
 from schedulers import get_scheduler
@@ -48,10 +47,11 @@ class LinearRampdown(_LRScheduler):
 
 class AuxModel:
 
-    def __init__(self, config, logger):
+    def __init__(self, config, logger, wandb):
         self.config = config
         self.logger = logger
         self.writer = SummaryWriter(config.log_dir)
+        self.wandb = wandb
         cudnn.enabled = True
 
         # set up model
@@ -71,7 +71,7 @@ class AuxModel:
             self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9, weight_decay=config.weight_decay)
             # self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
             self.scheduler = MultiStepLR(self.optimizer, milestones=[50,100,150,300], gamma=0.1)
-            wandb.watch(self.model)
+            self.wandb.watch(self.model)
 
             self.class_loss_func = nn.CrossEntropyLoss()
             self.pixel_loss = nn.L1Loss()
@@ -133,10 +133,11 @@ class AuxModel:
                 self.logger.info(print_string.format(epoch, self.start_iter,
                                                      losses.avg,
                                                      top1.avg,
-                                                     main_loss.avg(),
+                                                     main_loss.avg,
                                                      batch_time.avg))
                 self.writer.add_scalar('losses/all_loss', losses.avg, self.start_iter)
                 self.writer.add_scalar('losses/src_main_loss', src_main_loss, self.start_iter)
+        self.wandb.log({"Train Loss": main_loss.avg})
         self.scheduler.step()
 
         # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
@@ -147,6 +148,7 @@ class AuxModel:
         self.model.train()
         batch_time = AverageMeter()
         losses = AverageMeter()
+        main_loss = AverageMeter()
         top1 = AverageMeter()
         start_steps = epoch * len(src_loader)
         total_steps = self.config.num_epochs * len(tar_loader)
@@ -177,6 +179,8 @@ class AuxModel:
             src_main_logits = self.model(src_imgs, 'main_task')
             src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
             loss = src_main_loss * self.config.loss_weight['main_task']
+            main_loss.update(loss.item(), src_imgs.size(0))
+
 
 
             tar_main_logits = self.model(tar_imgs, 'main_task')
@@ -242,7 +246,7 @@ class AuxModel:
                 self.logger.info(print_string.format(epoch, self.start_iter,
                                                      losses.avg,
                                                      top1.avg,
-                                                     src_main_loss.item(),
+                                                     main_loss.avg,
                                                      *src_aux_loss_all,
                                                      *tar_aux_loss_all,
                                                      batch_time.avg))
@@ -258,6 +262,7 @@ class AuxModel:
                                                self.start_iter)
                         self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name],
                                                self.start_iter)
+        self.wandb.log({"Train Loss": main_loss.avg})
         self.scheduler.step()
 
         # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
@@ -335,6 +340,7 @@ class AuxModel:
         val_loader_iterator = iter(val_loader)
         num_val_iters = len(val_loader)
         tt = tqdm(range(num_val_iters), total=num_val_iters, desc="Validating")
+        loss = AverageMeter()
         kk = 1
         aux_correct = 0
         class_correct = 0
@@ -353,8 +359,9 @@ class AuxModel:
 
                 logits = self.model(imgs, 'main_task')
                 test_loss = self.class_loss_func(logits, cls_lbls)
-                wandb.log({
-                    "Test Loss": test_loss})
+                loss.update(test_loss.item(), imgs.size(0))
+
+
 
                 if self.config.save_output == True:
                     smax = nn.Softmax(dim=1)
@@ -381,6 +388,8 @@ class AuxModel:
                 total += imgs.size(0)
 
             tt.close()
+        self.wandb.log({
+            "Test Loss": loss.avg})
         # if self.config.save_output == True:
         soft_labels = soft_labels[1:, :]
             # np.save('pred_' + self.config.mode + '_main3.npy', soft_labels)
@@ -390,7 +399,7 @@ class AuxModel:
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total
         self.logger.info('class_acc: {:.2f} %'.format(class_acc))
-        wandb.log({
+        self.wandb.log({
             "Test acc": class_acc,
-            "Test AUC": AUC})
+            "Test AUC": 100*AUC})
         return class_acc, AUC
