@@ -71,9 +71,9 @@ class DefaultConfigs(object):
 
 
     random_seed = 33
-    num_epochs = 300
+    num_epochs = 100
     gpus = [1]
-    lr =  0.1
+    lr =  0.001
     weight_decay = 10e-3
 
 

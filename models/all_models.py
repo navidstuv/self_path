@@ -67,10 +67,10 @@ class AuxModel:
             # set up optimizer, lr scheduler and loss functions
 
             lr = config.lr
-            # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
-            self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9, weight_decay=config.weight_decay)
-            # self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
-            self.scheduler = MultiStepLR(self.optimizer, milestones=[50,100,150,300], gamma=0.1)
+            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
+            # self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9, weight_decay=config.weight_decay)
+            self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
+            # self.scheduler = MultiStepLR(self.optimizer, milestones=[50,100,150,300], gamma=0.1)
             self.wandb.watch(self.model)
 
             self.class_loss_func = nn.CrossEntropyLoss()
