@@ -21,7 +21,7 @@ class Unlabeller():
 def preprocess_input(x):
     x /= 255
     return x
-
+# TO DO: Separate dataloader for each task
 def preprocess_input_stain(x, maxx = 1, minn = -1):
     if np.amax(x)==0 and np.amin(x)==0 or (np.amax(x)-np.amin(x))==0:
         std=np.zeros_like(x)
@@ -94,14 +94,12 @@ class Histodata(Dataset):
             aux_image_mag = torch.from_numpy(aux_image_mag).float()
             aux_image_mag = aux_image_mag.permute(2, 0, 1)
             aux_label_mag = torch.from_numpy(np.array(aux_label_mag)).long()
-
         if 'jigsaw' in config.task_names:
             jig_img, jig_label = jigsaw_res(img)
             jig_img = preprocess_input(jig_img.astype(np.float32))
             jig_img = torch.from_numpy(jig_img).float()
             jig_img = jig_img.permute(2, 0, 1)
             jig_label = torch.from_numpy(np.array(jig_label)).long()
-
         if 'hematoxylin' in config.task_names:
             ihc_hed = rgb2hed(main_img)
             hem_img = rescale_intensity(ihc_hed[:, :, 0], out_range=(0, 1))
@@ -129,7 +127,6 @@ class Histodata(Dataset):
 
     def __len__(self):
             return len(self.imgs)
-
 
 class Histodata_unlabel_domain_adopt(Dataset):
     def __init__(self, data_path , pickle_path, budget, unlabeled = True, augment = False):

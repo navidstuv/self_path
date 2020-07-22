@@ -210,14 +210,14 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
     labels.append(
         'max f1 score:{:0.2f} optimal thresh: {:0.2f}'.format(np.amax(f1), thresholds[np.where(f1 == np.amax(f1))][0]))
 
-    fig = plt.gcf()
-    fig.subplots_adjust(bottom=0.25)
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.title('Precision-Recall curve')
-    plt.legend(lines, labels, loc=(0, -.38), prop=dict(size=14))
+    # fig = plt.gcf()
+    # fig.subplots_adjust(bottom=0.25)
+    # plt.xlim([0.0, 1.0])
+    # plt.ylim([0.0, 1.05])
+    # plt.xlabel('Recall')
+    # plt.ylabel('Precision')
+    # plt.title('Precision-Recall curve')
+    # plt.legend(lines, labels, loc=(0, -.38), prop=dict(size=14))
 
     # ---------------------------------------------
     precision, recall, _ = precision_recall_curve(true_labels, tumour_class)
@@ -230,13 +230,13 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
              where='post')
     plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
 
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.ylim([0.0, 1.05])
-    plt.xlim([0.0, 1.0])
-    plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format(
-        average_precision_score(true_labels, tumour_class)))
-    plt.show()
+    # plt.xlabel('Recall')
+    # plt.ylabel('Precision')
+    # plt.ylim([0.0, 1.05])
+    # plt.xlim([0.0, 1.0])
+    # plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format(
+    #     average_precision_score(true_labels, tumour_class)))
+    # plt.show()
     Auc = roc_auc_score(true_labels, tumour_class)
     # tumour_class[tumour_class>threshold] = 1
     # tumour_class[tumour_class <= threshold] = 0
