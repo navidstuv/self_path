@@ -60,7 +60,8 @@ class AuxModel:
         self.model = self.model.to(self.device)
         self.best_acc = 0
         self.best_AUC = 0
-
+        self.class_loss_func = nn.CrossEntropyLoss()
+        self.pixel_loss = nn.L1Loss()
         if config.mode == 'train':
             # set up optimizer, lr scheduler and loss functions
 
@@ -70,10 +71,6 @@ class AuxModel:
             self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
             # self.scheduler = MultiStepLR(self.optimizer, milestones=[50,100,150,300], gamma=0.1)
             self.wandb.watch(self.model)
-
-            self.class_loss_func = nn.CrossEntropyLoss()
-            self.pixel_loss = nn.L1Loss()
-
             self.start_iter = 0
 
             # resume
@@ -95,12 +92,10 @@ class AuxModel:
         batch_time = AverageMeter()
         losses = AverageMeter()
         main_loss = AverageMeter()
-
         top1 = AverageMeter()
 
         for it, src_batch in enumerate(src_loader):
             t = time.time()
-
             self.optimizer.zero_grad()
             src = src_batch
             src = to_device(src, self.device)
@@ -112,7 +107,6 @@ class AuxModel:
             src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
             loss = src_main_loss * self.config.loss_weight['main_task']
             main_loss.update(loss.item(), src_imgs.size(0))
-
             precision1_train, precision2_train = accuracy(src_main_logits, src_cls_lbls, topk=(1, 2))
             top1.update(precision1_train[0], src_imgs.size(0))
 
@@ -273,7 +267,6 @@ class AuxModel:
             self.logger.info('learning rate: %f ' % get_lr(self.optimizer))
             # validation
             self.save(self.config.model_dir, 'last')
-
 
             if val_loader is not None:
                 self.logger.info('validating...')
