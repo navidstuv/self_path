@@ -6,7 +6,21 @@ class DefaultConfigs(object):
     pretrained = False
     stain_normalized = True
     augmentation = True
+    training_num_print_epoch = 20
+    save_output = True
+    eval_batch_size = 128
+    test_batch_size = 128
+    random_seed = 33
+    num_epochs = 100
+    gpus = [1]
+    lr =  0.001
+    weight_decay = 10e-3
+    src_batch_size = 64
+    tar_batch_size = 64
     exp_name = ' cam-oscc'
+    # for resumin training
+    training_resume = ''
+
     task_names = ['main_task']#['main_task', 'magnification', 'jigsaw', 'domain_classifier']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
@@ -32,45 +46,27 @@ class DefaultConfigs(object):
     best_model_dir = best_model_dir + str(annotation_budget)+'/best_model_dir'
 
 
-    training_resume = ''
-    training_num_print_epoch = 20
 
-
-    #source domain
-    src_batch_size = 64
+    #source domain path
     # base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
     base_data_path = '/media/navid/SeagateBackupPlusDrive/512all'
     pickle_path = 'pickle_files/training_balanced.pickle'
     budget = 'training' + str(annotation_budget)
 
-    #target domain
-    tar_batch_size = 64
+    #target domain path
     # base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
     base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
     pickle_path_unlabel= 'pickle_files/training_balanced.pickle'
     budget_unlabel = 'training1'
 
-    # validation
+    # validation path
     pickle_path_valid = './pickle_files/validation_balanced.pickle'
     budget_valid = 'validation1'
 
-    # test
+    # test path
     # base_data_path_unlabel_new = 'G://test_camelyon'
     pickle_path_test = './pickle_files/test_balanced.pickle'
     budget_test = 'test1'
-
     testing_model ='./test_main_semi0.2/best_model/model_best.pth'
-
-
-    save_output = True
-    eval_batch_size = 128
-    test_batch_size = 128
-    random_seed = 33
-    num_epochs = 100
-    gpus = [1]
-    lr =  0.001
-    weight_decay = 10e-3
-
-
 
 config = DefaultConfigs()

@@ -89,7 +89,6 @@ def convert_state_dict(state_dict):
         new_state_dict[name] = v
     return new_state_dict
 
-
 def get_logger(logdir, name):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
@@ -107,7 +106,6 @@ def get_logger(logdir, name):
     logger.addHandler(file_hdlr)
     logger.addHandler(strm_hdlr)
     return logger
-
 
 def make_inf_dl(dl):
     while True:
