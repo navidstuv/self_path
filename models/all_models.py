@@ -14,7 +14,6 @@ from utils.utils import stats
 
 # custom modules
 from schedulers import get_scheduler
-
 from optimizers import get_optimizer
 from models.model import get_model
 from utils.metrics import AverageMeter, accuracy
@@ -44,7 +43,6 @@ class LinearRampdown(_LRScheduler):
         factor = self.ramp(self.last_epoch)
         return [base_lr * factor for base_lr in self.base_lrs]
 
-
 class AuxModel:
 
     def __init__(self, config, logger, wandb):
@@ -62,6 +60,8 @@ class AuxModel:
         self.model = self.model.to(self.device)
         self.best_acc = 0
         self.best_AUC = 0
+        self.class_loss_func = nn.CrossEntropyLoss()
+        self.pixel_loss = nn.L1Loss()
 
         if config.mode == 'train':
             # set up optimizer, lr scheduler and loss functions
@@ -71,10 +71,7 @@ class AuxModel:
             # self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9, weight_decay=config.weight_decay)
             self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
             # self.scheduler = MultiStepLR(self.optimizer, milestones=[50,100,150,300], gamma=0.1)
-            self.wandb.watch(self.model)
 
-            self.class_loss_func = nn.CrossEntropyLoss()
-            self.pixel_loss = nn.L1Loss()
 
             self.start_iter = 0
 
@@ -88,8 +85,10 @@ class AuxModel:
             self.load(os.path.join(config.testing_model))
         else:
             self.load(os.path.join(config.testing_model))
+        self.wandb.watch(self.model)
 
-    def entropy_loss(self, x):
+    @staticmethod
+    def entropy_loss(x):
         return torch.sum(-F.softmax(x, 1) * F.log_softmax(x, 1), 1).mean()
 
     def train_epoch_main_task(self, src_loader, tar_loader, epoch, print_freq):
@@ -97,7 +96,6 @@ class AuxModel:
         batch_time = AverageMeter()
         losses = AverageMeter()
         main_loss = AverageMeter()
-
         top1 = AverageMeter()
 
         for it, src_batch in enumerate(src_loader):
@@ -152,7 +150,9 @@ class AuxModel:
         top1 = AverageMeter()
         start_steps = epoch * len(src_loader)
         total_steps = self.config.num_epochs * len(tar_loader)
+        # for it, tar_batch in enumerate(tar_loader):
         for it, (src_batch, tar_batch) in enumerate(zip(src_loader, itertools.cycle(tar_loader))):
+            # src_batch = next(iter(src_loader))
             t = time.time()
             p = float(it + start_steps) / total_steps
             alpha = 2. / (1. + np.exp(-10 * p)) - 1
@@ -170,8 +170,7 @@ class AuxModel:
                 src_tar_imgs = torch.cat((src_imgs, tar_imgs), dim=0)
                 src_tar_imgs = src_tar_imgs[r, :, :, :]
                 src_tar_img = src_tar_imgs[:src_imgs.size()[0], :, :, :]
-                src_tar_lbls = torch.cat((torch.zeros((src_imgs.size()[0])), torch.ones((tar_imgs.size()[0]))),
-                                         dim=0)
+                src_tar_lbls = torch.cat((torch.zeros((src_imgs.size()[0])), torch.ones((tar_imgs.size()[0]))), dim=0)
                 src_tar_lbls = src_tar_lbls[r]
                 src_tar_lbls = src_tar_lbls[:src_imgs.size()[0]]
                 src_tar_lbls = src_tar_lbls.long().cuda()
@@ -240,6 +239,8 @@ class AuxModel:
                         printt = printt + ' | tar_aux_' + task_name + ': {:.3f} |'
                     else:
                         printt = printt + 'src_aux_' + task_name + ': {:.3f} | tar_aux_' + task_name + ': {:.3f}'
+                        # printt = printt +'| tar_aux_' + task_name + ': {:.3f}'
+
                 print_string = 'Epoch {:>2} | iter {:>4} | loss:{:.3f} |  acc: {:.3f} | src_main: {:.3f} |' + printt + '{:4.2f} s/it'
                 src_aux_loss_all = [loss.item() for loss in src_aux_loss.values()]
                 tar_aux_loss_all = [loss.item() for loss in tar_aux_loss.values()]
@@ -258,8 +259,8 @@ class AuxModel:
                         self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name],
                                                self.start_iter)
                     else:
-                        self.writer.add_scalar('losses/src_aux_loss_' + task_name, src_aux_loss[task_name],
-                                               self.start_iter)
+                        # self.writer.add_scalar('losses/src_aux_loss_' + task_name, src_aux_loss[task_name],
+                        #                        self.start_iter)
                         self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name],
                                                self.start_iter)
         self.wandb.log({"Train Loss": main_loss.avg})
