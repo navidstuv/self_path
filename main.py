@@ -1,4 +1,3 @@
-
 from configs.configs import config
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = str(config.gpus).strip('[]')
@@ -27,9 +26,7 @@ def main(wandb):
     # model = get_model(config)
     model = AuxModel(config, logger, wandb)
 
-
     src_loader, tar_loader, val_loader, test_loader  = get_loaders(config)
-
 
     if config.mode == 'train':
         model.train(src_loader, tar_loader, val_loader, None)
@@ -40,19 +37,9 @@ def main(wandb):
 
 
 if __name__ == '__main__':
-    wandb.init(project="semi-sup")
-    wconfig = wandb.config
-    wconfig.encoder_name = config.encoder_name
-    wconfig.pretrained  = config.pretrained
-    wconfig.stain_normalized = config.stain_normalized
-    wconfig.augmentation = config.augmentation
-    wconfig.task_names = config.task_names
-    wconfig.aux_task_names = config.aux_task_names
-    wconfig.random_seed = config.random_seed
-    wconfig.num_epochs = config.num_epochs
-    wconfig.gpus = config.gpus
-    wconfig.lr = config.lr
-    wconfig.weight_decay = config.weight_decay
+    all_cfigs = dict((name, getattr(config, name)) for name in dir(config) if not name.startswith('__'))
+    # Initialize wandb for tracking experiments
+    wandb.init(config=all_cfigs, project="semi-sup")
     set_seed(config.random_seed)
     main(wandb)
 
