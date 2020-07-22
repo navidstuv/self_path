@@ -38,6 +38,7 @@ def main(wandb):
         model.test(test_loader)
 
 if __name__ == '__main__':
+    # Connect to wandb for tracking exp.
     all_cfigs = dict((name, getattr(config, name)) for name in dir(config) if not name.startswith('__'))
     wandb.init(config=all_cfigs, project="semi-sup")
     set_seed(config.random_seed)

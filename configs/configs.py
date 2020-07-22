@@ -21,7 +21,7 @@ class DefaultConfigs(object):
     # for resumin training
     training_resume = ''
 
-    task_names = ['main_task']#['main_task', 'magnification', 'jigsaw', 'domain_classifier']
+    task_names = ['main_task', 'magnification']#['main_task', 'magnification', 'jigsaw', 'domain_classifier']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'main_task': {'type': 'classification', 'n_classes': 2},
