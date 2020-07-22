@@ -16,9 +16,7 @@ class DefaultConfigs(object):
              'hematoxylin': {'type': 'pixel', 'n_classes': 1}
              }
     loss_weight = {'magnification': 1, 'domain_classifier': 1, 'main_task': 1, 'jigsaw': 1, 'hematoxylin': 1}
-
     annotation_budget = 0.2
-
     log_dir = './exp/'
     cache_dir = './exp/'
     model_dir = './exp/'
@@ -67,9 +65,6 @@ class DefaultConfigs(object):
     save_output = True
     eval_batch_size = 128
     test_batch_size = 128
-
-
-
     random_seed = 33
     num_epochs = 100
     gpus = [1]

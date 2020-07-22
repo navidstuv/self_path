@@ -145,6 +145,7 @@ class AuxModel:
         # del tar_aux_logits, tar_class_logits
 
     def train_epoch_all_tasks(self, src_loader, tar_loader, epoch, print_freq):
+
         self.model.train()
         batch_time = AverageMeter()
         losses = AverageMeter()
@@ -155,6 +156,8 @@ class AuxModel:
         for it, (src_batch, tar_batch) in enumerate(zip(src_loader, itertools.cycle(tar_loader))):
             t = time.time()
             p = float(it + start_steps) / total_steps
+
+            # this is based on DANN paper
             alpha = 2. / (1. + np.exp(-10 * p)) - 1
 
             self.optimizer.zero_grad()
@@ -165,13 +168,13 @@ class AuxModel:
             src_imgs, src_cls_lbls, src_aux_mag_imgs, src_aux_mag_lbls, src_aux_jigsaw_imgs, src_aux_jigsaw_lbls, src_aux_hem_lbls = src
             tar_imgs, tar_lbls, tar_aux_mag_imgs, tar_aux_mag_lbls, tar_aux_jigsaw_imgs, tar_aux_jigsaw_lbls, tar_aux_hem_lbls = tar
 
+            #arranging batch for domain classifier
             if 'domain_classifier' in self.config.task_names:
                 r = torch.randperm(src_imgs.size()[0] + tar_imgs.size()[0])
                 src_tar_imgs = torch.cat((src_imgs, tar_imgs), dim=0)
                 src_tar_imgs = src_tar_imgs[r, :, :, :]
                 src_tar_img = src_tar_imgs[:src_imgs.size()[0], :, :, :]
-                src_tar_lbls = torch.cat((torch.zeros((src_imgs.size()[0])), torch.ones((tar_imgs.size()[0]))),
-                                         dim=0)
+                src_tar_lbls = torch.cat((torch.zeros((src_imgs.size()[0])), torch.ones((tar_imgs.size()[0]))),dim=0)
                 src_tar_lbls = src_tar_lbls[r]
                 src_tar_lbls = src_tar_lbls[:src_imgs.size()[0]]
                 src_tar_lbls = src_tar_lbls.long().cuda()
@@ -180,29 +183,25 @@ class AuxModel:
             src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
             loss = src_main_loss * self.config.loss_weight['main_task']
             main_loss.update(loss.item(), src_imgs.size(0))
-
-
-
             tar_main_logits = self.model(tar_imgs, 'main_task')
             tar_main_loss = self.entropy_loss(tar_main_logits)
             loss += tar_main_loss
-
             tar_aux_loss = {}
             src_aux_loss = {}
-
+            #Domain classifier task using GRL--It is only used for domain adaptation
             if 'domain_classifier' in self.config.task_names:
                 src_tar_logits = self.model(src_tar_img, 'domain_classifier', alpha)
                 tar_aux_loss['domain_classifier'] = self.class_loss_func(src_tar_logits, src_tar_lbls)
                 loss += tar_aux_loss['domain_classifier'] * self.config.loss_weight['domain_classifier']
+
+            #TO DO: separating dataloaders and iterate over tasks
             if 'magnification' in self.config.task_names:
                 tar_aux_mag_logits = self.model(tar_aux_mag_imgs, 'magnification')
                 src_aux_mag_logits = self.model(src_aux_mag_imgs, 'magnification')
                 tar_aux_loss['magnification'] = self.class_loss_func(tar_aux_mag_logits, tar_aux_mag_lbls)
                 src_aux_loss['magnification'] = self.class_loss_func(src_aux_mag_logits, src_aux_mag_lbls)
-                loss += src_aux_loss['magnification'] * self.config.loss_weight[
-                    'magnification']  # todo: magnification weight
-                loss += tar_aux_loss['magnification'] * self.config.loss_weight[
-                    'magnification']  # todo: main task weight
+                loss += src_aux_loss['magnification'] * self.config.loss_weight['magnification']  # todo: magnification weight
+                loss += tar_aux_loss['magnification'] * self.config.loss_weight['magnification']  # todo: main task weight
             if 'jigsaw' in self.config.task_names:
                 tar_aux_jigsaw_logits = self.model(tar_aux_jigsaw_imgs, 'jigsaw')
                 src_aux_jigsaw_logits = self.model(src_aux_jigsaw_imgs, 'jigsaw')
@@ -210,7 +209,6 @@ class AuxModel:
                 src_aux_loss['jigsaw'] = self.class_loss_func(src_aux_jigsaw_logits, src_aux_jigsaw_lbls)
                 loss += tar_aux_loss['jigsaw'] * self.config.loss_weight['jigsaw']  # todo: main task weight
                 loss += src_aux_loss['jigsaw'] * self.config.loss_weight['jigsaw']  # todo: main task weight
-
             if 'hematoxylin' in self.config.task_names:
                 tar_aux_hem_logits = self.model(tar_imgs, 'hematoxylin')
                 src_aux_hem_logits = self.model(src_imgs, 'hematoxylin')
@@ -219,20 +217,15 @@ class AuxModel:
                 loss += tar_aux_loss['hematoxylin'] * self.config.loss_weight['hematoxylin']  # todo: main task weight
                 loss += src_aux_loss['hematoxylin'] * self.config.loss_weight['hematoxylin']  # todo: main task weight
 
-
             precision1_train, precision2_train = accuracy(src_main_logits, src_cls_lbls, topk=(1, 2))
             top1.update(precision1_train[0], src_imgs.size(0))
-
             loss.backward()
             self.optimizer.step()
-
             losses.update(loss.item(), src_imgs.size(0))
 
             # measure elapsed time
             batch_time.update(time.time() - t)
-
             self.start_iter += 1
-
             if self.start_iter % print_freq == 0:
                 printt = ''
                 for task_name in self.config.aux_task_names:
@@ -270,7 +263,6 @@ class AuxModel:
         # del tar_aux_logits, tar_class_logits
 
     def train(self, src_loader, tar_loader, val_loader, test_loader):
-
         num_batches = len(src_loader)
         print_freq = max(num_batches // self.config.training_num_print_epoch, 1)
         start_epoch = self.start_iter // num_batches
@@ -347,22 +339,16 @@ class AuxModel:
         total = 0
         soft_labels = np.zeros((1, 2))
         true_labels = []
-
         self.model.eval()
         with torch.no_grad():
             for cur_it in tt:
-
                 data = next(val_loader_iterator)
                 data = to_device(data, self.device)
                 imgs, cls_lbls, _, _, _, _,_ = data
                 # Get the inputs
-
                 logits = self.model(imgs, 'main_task')
                 test_loss = self.class_loss_func(logits, cls_lbls)
                 loss.update(test_loss.item(), imgs.size(0))
-
-
-
                 if self.config.save_output == True:
                     smax = nn.Softmax(dim=1)
                     smax_out = smax(logits)
