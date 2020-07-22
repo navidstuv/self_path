@@ -16,7 +16,6 @@ import matplotlib.pyplot as plt
 from inspect import signature
 from collections import OrderedDict
 
-
 def get_args():
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
@@ -26,7 +25,6 @@ def get_args():
         help='The Configuration file')
     args = argparser.parse_args()
     return args
-
 
 def to_device(input, device):
     if torch.is_tensor(input):
@@ -39,7 +37,6 @@ def to_device(input, device):
         return [to_device(sample, device=device) for sample in input]
     else:
         raise TypeError("Input must contain tensor, dict or list, found {type(input)}")
-
 
 def cls_acc(output, target, topk=(1,)):
     """Computes the precision@k for the specified values of k"""
@@ -56,7 +53,6 @@ def cls_acc(output, target, topk=(1,)):
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
 
-
 def eval_seg(label_preds, label_trues, n_class):
     hist = np.zeros((n_class, n_class))
     for lt, lp in zip(label_trues, label_preds):
@@ -66,17 +62,14 @@ def eval_seg(label_preds, label_trues, n_class):
     mean_iou = np.nanmean(iou)
     return mean_iou
 
-
 def fast_hist(label_pred, label_true, n_class):
     mask = (label_true >= 0) & (label_true < n_class)
     return np.bincount(
         n_class * label_true[mask].astype(int) + label_pred[mask],
         minlength=n_class ** 2).reshape(n_class, n_class)
 
-
 def per_class_iou(hist):
     return np.diag(hist) / (hist.sum(1) + hist.sum(0) - np.diag(hist))
-
 
 def convert_state_dict(state_dict):
     """Converts a state dict saved from a dataParallel module to normal
@@ -167,14 +160,14 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
     # tumour_class=  np.array(tumour_class)
     # threshold = 0.5
     fpr, tpr, thresholds = roc_curve(true_labels, tumour_class, pos_label=1)
-    plt.figure(1)
-    plt.plot([0, 1], [0, 1], 'k--')
-    plt.plot(fpr, tpr, label='Tumor')
-    plt.xlabel('False positive rate')
-    plt.ylabel('True positive rate')
-    plt.title('ROC curve')
-    plt.legend(loc='best')
-    plt.show()
+    # plt.figure(1)
+    # plt.plot([0, 1], [0, 1], 'k--')
+    # plt.plot(fpr, tpr, label='Tumor')
+    # plt.xlabel('False positive rate')
+    # plt.ylabel('True positive rate')
+    # plt.title('ROC curve')
+    # plt.legend(loc='best')
+    # plt.show()
     # ---------------------------------------------
 
     precision, recall, thresholds = precision_recall_curve(true_labels,
@@ -233,12 +226,9 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
     # plt.ylim([0.0, 1.05])
     # plt.xlim([0.0, 1.0])
     # plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format(
-    #     average_precision_score(true_labels, tumour_class)))
+    # average_precision_score(true_labels, tumour_class)))
     # plt.show()
     Auc = roc_auc_score(true_labels, tumour_class)
-    # tumour_class[tumour_class>threshold] = 1
-    # tumour_class[tumour_class <= threshold] = 0
-
     F1 = f1_score(true_labels, pred_labels, pos_label=1)
     ACC = accuracy_score(true_labels, pred_labels)
     conf_matrix = confusion_matrix(true_labels, pred_labels)
