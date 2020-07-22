@@ -64,7 +64,6 @@ class AuxModel:
         self.pixel_loss = nn.L1Loss()
         if config.mode == 'train':
             # set up optimizer, lr scheduler and loss functions
-
             lr = config.lr
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
             # self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9, weight_decay=config.weight_decay)
@@ -78,7 +77,6 @@ class AuxModel:
                 self.load(config.model_dir + '/' + config.training_resume)
 
             cudnn.benchmark = True
-
         elif config.mode == 'val':
             self.load(os.path.join(config.testing_model))
         else:
@@ -137,7 +135,6 @@ class AuxModel:
         # del tar_aux_logits, tar_class_logits
 
     def train_epoch_all_tasks(self, src_loader, tar_loader, epoch, print_freq):
-
         self.model.train()
         batch_time = AverageMeter()
         losses = AverageMeter()
