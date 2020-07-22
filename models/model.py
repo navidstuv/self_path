@@ -66,23 +66,3 @@ def get_model(config):
     # Place model on cuda
     model = model.cuda()
     return model
-
-def get_optimizer(model, optimizer_type, lr, weight_decay):
-    """
-    :param model: pytorch model
-    :param optimizer_type: SGD or ADAM
-    :param lr:
-    :param weight_decay:
-    :return:
-    """
-    if optimizer_type == 'SGD':
-        return optim.SGD(
-            model.parameters(),
-            lr=lr,
-            weight_decay=weight_decay,
-        )
-    if optimizer_type == 'ADAM':
-        return optim.Adam(model.parameters(), lr=lr,
-                          weight_decay=weight_decay)
-    else:
-        raise Exception('Wrong optimizer type {}'.format(optimizer_type))

@@ -30,7 +30,7 @@ class DefaultConfigs(object):
              'hematoxylin': {'type': 'pixel', 'n_classes': 1}
              }
     loss_weight = {'magnification': 1, 'domain_classifier': 1, 'main_task': 1, 'jigsaw': 1, 'hematoxylin': 1}
-    annotation_budget = 0.2
+    annotation_budget = 0.01
     log_dir = './exp/'
     cache_dir = './exp/'
     model_dir = './exp/'

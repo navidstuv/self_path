@@ -14,8 +14,6 @@ from utils.utils import stats
 
 # custom modules
 from schedulers import get_scheduler
-
-from optimizers import get_optimizer
 from models.model import get_model
 from utils.metrics import AverageMeter, accuracy
 from utils.utils import to_device, make_inf_dl, save_output_img
