@@ -7,7 +7,7 @@ class DefaultConfigs(object):
     stain_normalized = True
     augmentation = True
     exp_name = ' cam-oscc'
-    task_names = ['main_task']#['main_task', 'magnification', 'jigsaw', 'domain_classifier']
+    task_names = ['main_task', 'jigsaw']#['main_task', 'magnification', 'jigsaw', 'domain_classifier']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
              'main_task': {'type': 'classification', 'n_classes': 2},
@@ -16,8 +16,7 @@ class DefaultConfigs(object):
              'hematoxylin': {'type': 'pixel', 'n_classes': 1}
              }
     loss_weight = {'magnification': 1, 'domain_classifier': 1, 'main_task': 1, 'jigsaw': 1, 'hematoxylin': 1}
-
-    annotation_budget = 0.2
+    annotation_budget = 0.01
 
     log_dir = './exp/'
     cache_dir = './exp/'
@@ -42,6 +41,7 @@ class DefaultConfigs(object):
     src_batch_size = 64
     # base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
     base_data_path = '/media/navid/SeagateBackupPlusDrive/512all'
+    # base_data_path = 'G:\\512all'
     pickle_path = 'pickle_files/training_balanced.pickle'
     budget = 'training' + str(annotation_budget)
 
@@ -49,6 +49,7 @@ class DefaultConfigs(object):
     tar_batch_size = 64
     # base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
     base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
+    # base_data_path_unlabel = 'G:\\512all'
     pickle_path_unlabel= 'pickle_files/training_balanced.pickle'
     budget_unlabel = 'training1'
 
@@ -60,22 +61,16 @@ class DefaultConfigs(object):
     # base_data_path_unlabel_new = 'G://test_camelyon'
     pickle_path_test = './pickle_files/test_balanced.pickle'
     budget_test = 'test1'
-
-    testing_model ='./test_main_semi0.2/best_model/model_best.pth'
+    testing_model ='./exp/_main_task_jigsaw0.01/best_model_dir/model_best_acc.pth'
 
 
     save_output = True
     eval_batch_size = 128
     test_batch_size = 128
-
-
-
     random_seed = 33
     num_epochs = 100
     gpus = [1]
     lr =  0.001
     weight_decay = 10e-3
-
-
 
 config = DefaultConfigs()
