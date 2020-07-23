@@ -21,29 +21,34 @@ class DefaultConfigs(object):
     # for resumin training
     training_resume = ''
 
-    task_names = ['main_task', 'magnification']#['main_task', 'magnification', 'jigsaw', 'domain_classifier']
+    task_names = ['main_task', 'rot']#['main_task', 'magnification', 'jigsaw', 'domain_classifier', hematoxylin, 'rot']
     aux_task_names =task_names[1:]
-    tasks = {'magnification': {'type': 'classification', 'n_classes': 3},
-             'main_task': {'type': 'classification', 'n_classes': 2},
-             'jigsaw': {'type': 'classification', 'n_classes': 12},
-             'domain_classifier': {'type': 'classification', 'n_classes': 2},
-             'hematoxylin': {'type': 'pixel', 'n_classes': 1}
+    tasks = {'magnification': {'type': 'classification_self', 'n_classes': 3},
+             'main_task': {'type': 'classification_main', 'n_classes': 2},
+             'jigsaw': {'type': 'classification_self', 'n_classes': 12},
+             'domain_classifier': {'type': 'classification_adapt', 'n_classes': 2},
+             'hematoxylin': {'type': 'pixel_self', 'n_classes': 1},
+             'flip': {'type': 'classification_self', 'n_classes': 2},
+             'rot': {'type': 'classification_self', 'n_classes': 4},
+             'auto': {'type': 'pixel_self', 'n_classes': 3}
              }
-    loss_weight = {'magnification': 1, 'domain_classifier': 1, 'main_task': 1, 'jigsaw': 1, 'hematoxylin': 1}
+    loss_weight = {'magnification': 1, 'domain_classifier': 1,
+                   'main_task': 1, 'jigsaw': 1, 'hematoxylin': 1,
+                   'flip': 1, 'rot':1, 'auto': 1}
     annotation_budget = 0.01
     log_dir = './exp/'
     cache_dir = './exp/'
     model_dir = './exp/'
     best_model_dir = './exp/'
     for task_name in task_names:
-        log_dir = log_dir +'_' +task_name
-        cache_dir = cache_dir +'_' +task_name
-        model_dir = model_dir +'_' +task_name
-        best_model_dir = best_model_dir +'_' +task_name
+        log_dir = log_dir +'_' +task_name[:3]
+        cache_dir = cache_dir +'_' +task_name[:3]
+        model_dir = model_dir +'_' +task_name[:3]
+        best_model_dir = best_model_dir +'_' +task_name[:3]
     log_dir = log_dir + str(annotation_budget)+'/logs'
-    cache_dir = cache_dir + str(annotation_budget)+'/cache_dir'
-    model_dir = model_dir + str(annotation_budget)+'/model_dir'
-    best_model_dir = best_model_dir + str(annotation_budget)+'/best_model_dir'
+    cache_dir = cache_dir + str(annotation_budget)+'/cache'
+    model_dir = model_dir + str(annotation_budget)+'/model'
+    best_model_dir = best_model_dir + str(annotation_budget)+'/best_model'
 
 
 
@@ -67,6 +72,6 @@ class DefaultConfigs(object):
     # base_data_path_unlabel_new = 'G://test_camelyon'
     pickle_path_test = './pickle_files/test_balanced.pickle'
     budget_test = 'test1'
-    testing_model ='./test_main_semi0.2/best_model/model_best.pth'
+    testing_model ='./exp/_mai_mag_jig_hem0.01/best_model/model_best_acc.pth'
 
 config = DefaultConfigs()

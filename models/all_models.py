@@ -140,10 +140,10 @@ class AuxModel:
         losses = AverageMeter()
         main_loss = AverageMeter()
         top1 = AverageMeter()
-        start_steps = epoch * len(src_loader)
-        total_steps = self.config.num_epochs * len(tar_loader)
+        start_steps = epoch * len(src_loader['main_task'])
+        total_steps = self.config.num_epochs * len(tar_loader['main_task'])
 
-        max_num_iter = len(src_loader)
+        max_num_iter = len(src_loader['main_task'])
         for it in range(max_num_iter):
             t = time.time()
 

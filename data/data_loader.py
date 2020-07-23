@@ -1,12 +1,13 @@
 from data.datasets import Histodata, Histodata_unlabel_domain_adopt, Histodata_main, Histodata_jigsaw,\
-    Histodata_magnification, Histodata_hematoxylin
+    Histodata_magnification, Histodata_hematoxylin, Histodata_auto, Histodata_flip, Histodata_rot
 
 from torch.utils.data import DataLoader
 from data.augmentations import get_medium_augmentations
 from utils.utils import worker_init_fn
 
 all_loader = {'main_task': Histodata_main, 'magnification': Histodata_magnification,
-              'jigsaw': Histodata_jigsaw, 'hematoxylin': Histodata_hematoxylin}
+              'jigsaw': Histodata_jigsaw, 'hematoxylin': Histodata_hematoxylin,
+              'rot': Histodata_rot, 'auto': Histodata_auto, 'flip':Histodata_flip}
 
 
 def get_loaders(config):
