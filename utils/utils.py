@@ -135,13 +135,13 @@ def f11_score(precision, recall):
 
 
 def stats(soft_labels, true_labels, opt_thresh = 0.5):
-    '''
+    """
     prediction should be soft labels
 
     :param pred:
     :param true:
     :return:
-    '''
+    """
 
     tumour_class = [x[1] for x in soft_labels]
 

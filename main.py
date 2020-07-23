@@ -11,6 +11,7 @@ from data.data_loader import get_loaders
 import warnings
 import wandb
 warnings.filterwarnings("ignore")
+
 def main(wandb):
 
     # create the experiments dirs

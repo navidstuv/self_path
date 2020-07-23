@@ -21,6 +21,7 @@ class MultiTaskCNN(nn.Module):
         self.bn = nn.BatchNorm2d(3)
         self.base = ResNet(encoder_name, pretrained=pretrained)
         self.decoders = nn.ModuleDict({})
+
     def forward(self, x, task_name, alpha=1):
         """
         Forward pass through the model
@@ -56,11 +57,10 @@ def get_model(config):
         task_dictionary = config.tasks[task_name]
         task_type = task_dictionary['type']
         n_classes = task_dictionary['n_classes']
-
-        if task_type == 'pixel':
+        if task_type == 'pixel_self':
             model.decoders.update({task_name:UnetDecoder(n_classes,
                                             model.base.multiple)})
-        if task_type == 'classification':
+        if task_type in ['classification_adapt', 'classification_self', 'classification_main']:
             model.decoders.update({task_name:
                                   Classifier(input_dim=latent_dim, n_classes=n_classes)})
     # Place model on cuda
