@@ -132,7 +132,7 @@ class Histodata(Dataset):
 
 class Histodata_hematoxylin(Dataset):
 
-    def __init__(self, data_path , pickle_path, budget, augment = False):
+    def __init__(self, data_path, pickle_path, budget, augment=False):
         self.path = data_path
         self.augment = augment
         if config.stain_normalized:
@@ -140,23 +140,17 @@ class Histodata_hematoxylin(Dataset):
             i1 = cv2.imread('./data/source.png')
             i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
             self.n.fit(i1)
-        normal_label = []
-        tumour_label = []
-        normal_path = []
-        tumour_path = []
-
+        label = []
+        img_path = []
         with open(pickle_path, 'rb') as f:
             data_budget = pickle.load(f)
-        for image_name in data_budget[budget]['patches']['Normal']:
-            normal_path.append(os.path.join('Normal', image_name))
-            normal_label.append(0)
-        print(f'number of normal classes: {len(normal_label)}')
-        for image_name in data_budget[budget]['patches']['Tumour']:
-            tumour_path.append(os.path.join('Tumour', image_name))
-            tumour_label.append(1)
-        print(f'number of tumour classes: {len(tumour_label)}')
-        self.imgs = np.append(normal_path,tumour_path)
-        self.labels = np.append(normal_label,tumour_label)
+        for i, class_name in enumerate(data_budget[budget]['patches'].keys()):
+            img_path = img_path + [os.path.join(class_name, x) for x in data_budget[budget]['patches'][class_name]]
+            num_imgs = len(data_budget[budget]['patches'][class_name])
+            label = label + [i] * num_imgs
+            print(f'number of images in class {class_name} are {num_imgs}')
+        self.imgs = img_path
+        self.labels = label
 
     def __getitem__(self,index):
         filename = self.imgs[index]
@@ -167,9 +161,7 @@ class Histodata_hematoxylin(Dataset):
             img = self.n.transform(img)
 
         # resize image
-        width = int(img.shape[1] * 25 / 100)
-        height = int(img.shape[0] * 25 / 100)
-        dim = (width, height)
+        dim = (128, 128)
         main_img = cv2.resize(img, dim, interpolation=cv2.INTER_CUBIC)
         ihc_hed = rgb2hed(main_img)
         hem_img = rescale_intensity(ihc_hed[:, :, 0], out_range=(0, 1))
@@ -193,23 +185,17 @@ class Histodata_main(Dataset):
             i1 = cv2.imread('./data/source.png')
             i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
             self.n.fit(i1)
-        normal_label = []
-        tumour_label = []
-        normal_path = []
-        tumour_path = []
-
+        label = []
+        img_path = []
         with open(pickle_path, 'rb') as f:
             data_budget = pickle.load(f)
-        for image_name in data_budget[budget]['patches']['Normal']:
-            normal_path.append(os.path.join('Normal', image_name))
-            normal_label.append(0)
-        print(f'number of normal classes: {len(normal_label)}')
-        for image_name in data_budget[budget]['patches']['Tumour']:
-            tumour_path.append(os.path.join('Tumour', image_name))
-            tumour_label.append(1)
-        print(f'number of tumour classes: {len(tumour_label)}')
-        self.imgs = np.append(normal_path,tumour_path)
-        self.labels = np.append(normal_label,tumour_label)
+        for i, class_name in enumerate(data_budget[budget]['patches'].keys()):
+            img_path = img_path + [os.path.join(class_name, x) for x in  data_budget[budget]['patches'][class_name]]
+            num_imgs = len(data_budget[budget]['patches'][class_name])
+            label = label + [i]*num_imgs
+            print(f'number of images in class {class_name} are {num_imgs}')
+        self.imgs = img_path
+        self.labels = label
 
     def __getitem__(self,index):
         filename = self.imgs[index]
@@ -220,9 +206,7 @@ class Histodata_main(Dataset):
             img = self.n.transform(img)
 
         # resize image
-        width = int(img.shape[1] * 25 / 100)
-        height = int(img.shape[0] * 25 / 100)
-        dim = (width, height)
+        dim = (128, 128)
         main_img = cv2.resize(img, dim, interpolation=cv2.INTER_CUBIC)
         if self.augment:
             main_img = self.augment(main_img.shape)(image=main_img)
@@ -237,7 +221,7 @@ class Histodata_main(Dataset):
             return len(self.imgs)
 
 class Histodata_jigsaw(Dataset):
-    def __init__(self, data_path , pickle_path, budget, augment = False):
+    def __init__(self, data_path, pickle_path, budget, augment=False):
         self.path = data_path
         self.augment = augment
         if config.stain_normalized:
@@ -245,27 +229,29 @@ class Histodata_jigsaw(Dataset):
             i1 = cv2.imread('./data/source.png')
             i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
             self.n.fit(i1)
-        normal_label = []
-        tumour_label = []
-        normal_path = []
-        tumour_path = []
-
+        label = []
+        img_path = []
         with open(pickle_path, 'rb') as f:
             data_budget = pickle.load(f)
-        for image_name in data_budget[budget]['patches']['Normal']:
-            normal_path.append(os.path.join('Normal', image_name))
-            normal_label.append(0)
-        for image_name in data_budget[budget]['patches']['Tumour']:
-            tumour_path.append(os.path.join('Tumour', image_name))
-            tumour_label.append(1)
-        self.imgs = np.append(normal_path,tumour_path)
+        for i, class_name in enumerate(data_budget[budget]['patches'].keys()):
+            img_path = img_path + [os.path.join(class_name, x) for x in data_budget[budget]['patches'][class_name]]
+            num_imgs = len(data_budget[budget]['patches'][class_name])
+            label = label + [i] * num_imgs
+            print(f'number of images in class {class_name} are {num_imgs}')
+        self.imgs = img_path
+        self.labels = label
 
     def __getitem__(self,index):
+
         filename = self.imgs[index]
         img = cv2.imread(os.path.join(self.path, filename))
         img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
         if config.stain_normalized:
             img = self.n.transform(img)
+        # resize image
+        if config.dataset == 'kather':
+            dim = (512, 512)
+            img = cv2.resize(img, dim, interpolation=cv2.INTER_CUBIC)
         jig_img, jig_label = jigsaw_res(img)
         jig_img = preprocess_input(jig_img.astype(np.float32))
         jig_img = torch.from_numpy(jig_img).float()
@@ -277,6 +263,7 @@ class Histodata_jigsaw(Dataset):
             return len(self.imgs)
 
 class Histodata_magnification(Dataset):
+
     def __init__(self, data_path , pickle_path, budget, augment = False):
         self.path = data_path
         self.augment = augment
@@ -285,21 +272,17 @@ class Histodata_magnification(Dataset):
             i1 = cv2.imread('./data/source.png')
             i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
             self.n.fit(i1)
-        normal_label = []
-        tumour_label = []
-        normal_path = []
-        tumour_path = []
-
+        label = []
+        img_path = []
         with open(pickle_path, 'rb') as f:
             data_budget = pickle.load(f)
-        for image_name in data_budget[budget]['patches']['Normal']:
-            normal_path.append(os.path.join('Normal', image_name))
-            normal_label.append(0)
-        for image_name in data_budget[budget]['patches']['Tumour']:
-            tumour_path.append(os.path.join('Tumour', image_name))
-            tumour_label.append(1)
-        self.imgs = np.append(normal_path,tumour_path)
-        self.labels = np.append(normal_label,tumour_label)
+        for i, class_name in enumerate(data_budget[budget]['patches'].keys()):
+            img_path = img_path + [os.path.join(class_name, x) for x in  data_budget[budget]['patches'][class_name]]
+            num_imgs = len(data_budget[budget]['patches'][class_name])
+            label = label + [i]*num_imgs
+            print(f'number of images in class {class_name} are {num_imgs}')
+        self.imgs = img_path
+        self.labels = label
 
     def __getitem__(self,index):
         filename = self.imgs[index]
@@ -339,21 +322,17 @@ class Histodata_flip(Dataset):
             i1 = cv2.imread('./data/source.png')
             i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
             self.n.fit(i1)
-        normal_label = []
-        tumour_label = []
-        normal_path = []
-        tumour_path = []
-
+        label = []
+        img_path = []
         with open(pickle_path, 'rb') as f:
             data_budget = pickle.load(f)
-        for image_name in data_budget[budget]['patches']['Normal']:
-            normal_path.append(os.path.join('Normal', image_name))
-            normal_label.append(0)
-        for image_name in data_budget[budget]['patches']['Tumour']:
-            tumour_path.append(os.path.join('Tumour', image_name))
-            tumour_label.append(1)
-        self.imgs = np.append(normal_path,tumour_path)
-        self.labels = np.append(normal_label,tumour_label)
+        for i, class_name in enumerate(data_budget[budget]['patches'].keys()):
+            img_path = img_path + [os.path.join(class_name, x) for x in  data_budget[budget]['patches'][class_name]]
+            num_imgs = len(data_budget[budget]['patches'][class_name])
+            label = label + [i]*num_imgs
+            print(f'number of images in class {class_name} are {num_imgs}')
+        self.imgs = img_path
+        self.labels = label
 
     def __getitem__(self,index):
         filename = self.imgs[index]
@@ -445,21 +424,17 @@ class Histodata_auto(Dataset):
             i1 = cv2.imread('./data/source.png')
             i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
             self.n.fit(i1)
-        normal_label = []
-        tumour_label = []
-        normal_path = []
-        tumour_path = []
-
+        label = []
+        img_path = []
         with open(pickle_path, 'rb') as f:
             data_budget = pickle.load(f)
-        for image_name in data_budget[budget]['patches']['Normal']:
-            normal_path.append(os.path.join('Normal', image_name))
-            normal_label.append(0)
-        for image_name in data_budget[budget]['patches']['Tumour']:
-            tumour_path.append(os.path.join('Tumour', image_name))
-            tumour_label.append(1)
-        self.imgs = np.append(normal_path,tumour_path)
-        self.labels = np.append(normal_label,tumour_label)
+        for i, class_name in enumerate(data_budget[budget]['patches'].keys()):
+            img_path = img_path + [os.path.join(class_name, x) for x in  data_budget[budget]['patches'][class_name]]
+            num_imgs = len(data_budget[budget]['patches'][class_name])
+            label = label + [i]*num_imgs
+            print(f'number of images in class {class_name} are {num_imgs}')
+        self.imgs = img_path
+        self.labels = label
 
     def __getitem__(self,index):
         filename = self.imgs[index]

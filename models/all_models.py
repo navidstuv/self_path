@@ -10,7 +10,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR
-from utils.utils import stats
+from utils.utils import calculate_stat
 
 # custom modules
 from schedulers import get_scheduler
@@ -333,14 +333,17 @@ class AuxModel:
         aux_correct = 0
         class_correct = 0
         total = 0
-        soft_labels = np.zeros((1, 2))
+        if self.config.dataset == 'kather':
+            soft_labels = np.zeros((1, 9))
+        if self.config.dataset == 'oscc':
+            soft_labels = np.zeros((1, 2))
         true_labels = []
         self.model.eval()
         with torch.no_grad():
             for cur_it in tt:
                 data = next(val_loader_iterator)
                 data = to_device(data, self.device)
-                imgs, cls_lbls, _, _, _, _,_ = data
+                imgs, cls_lbls = data
                 # Get the inputs
                 logits = self.model(imgs, 'main_task')
                 test_loss = self.class_loss_func(logits, cls_lbls)
@@ -376,7 +379,10 @@ class AuxModel:
         soft_labels = soft_labels[1:, :]
             # np.save('pred_' + self.config.mode + '_main3.npy', soft_labels)
             # np.save('true_' + self.config.mode + '_main3.npy', true_labels)
-        AUC = stats(soft_labels, true_labels, opt_thresh=0.5)
+        if self.config.dataset == 'oscc':
+            AUC = calculate_stat(soft_labels, true_labels, 2, class_name, type='binary', thresh=0.5)
+        if self.config.dataset == 'kather':
+            AUC = calculate_stat(soft_labels, true_labels, 9 ,self.config.class_names, class_name, type='multi', thresh=0.5)
 
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total

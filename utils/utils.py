@@ -133,15 +133,96 @@ def f11_score(precision, recall):
     f1 = 2 * np.divide(np.multiply(precision, recall), np.add(precision, recall))
     return f1
 
-
-def stats(soft_labels, true_labels, opt_thresh = 0.5):
+def calculate_stat(pred, true, num_class, class_name,  type = 'binary', thresh = 0.5):
     """
-    prediction should be soft labels
 
     :param pred:
     :param true:
+    :param type:
+    :param thresh: It is used for type='binary
     :return:
     """
+    if type == 'multi':
+        auc = calculate_stats_multiclass(pred, true, num_class, class_name)
+    elif type =='binary':
+        auc = calculate_stats_binary(pred, true, thresh)
+    return  auc
+
+def calculate_stats_multiclass(pred, true, num_class, class_name):
+    """
+
+    :param class_name:
+    :param pred:
+    :param true:
+    :param num_class:
+    :return:
+    """
+    pred = np.array(pred)
+    true = np.array(true)
+    # check pred
+    if len(pred.shape) == 1 or pred.shape[1] != num_class:
+        pred = one_hot(pred, num_class)
+    # check true
+    if len(true.shape) == 1 or true.shape[1] != num_class:
+        true = one_hot(true, num_class)
+
+    # calculating accuracy
+    acc, balaced_acc = compute_accuracy(pred, true)
+    print(f'Accuracy: {acc}, Balanced accuracy: {balaced_acc}')
+
+    # calculating f1-score
+    f1 = compute_f1(pred, true)
+    print(f'F1 score: {f1}')
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(num_class):
+        fpr[i], tpr[i], _ = roc_curve(true[:, i], pred[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+    # First aggregate all false positive rates
+    all_fpr = np.unique(np.concatenate([fpr[i] for i in range(num_class)]))
+
+    # Then interpolate all ROC curves at this points
+    mean_tpr = np.zeros_like(all_fpr)
+    for i in range(num_class):
+        mean_tpr += interp(all_fpr, fpr[i], tpr[i])
+
+    # Finally average it and compute AUC
+    mean_tpr /= num_class
+    fpr["macro"] = all_fpr
+    tpr["macro"] = mean_tpr
+    roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
+
+    # Plot all ROC curves
+    plt.plot(fpr["macro"], tpr["macro"],
+             label='macro-average ROC curve (area = {0:0.2f})'
+                   ''.format(roc_auc["macro"]),
+             color='navy', linestyle=':', linewidth=4)
+    colors = cycle(['aqua', 'darkorange', 'cornflowerblue', 'yellow', 'blue', 'red', 'gray', 'pink', 'lightgreen'])
+    for i, color in zip(range(num_class), colors):
+        plt.plot(fpr[i], tpr[i], color=color, lw=2,
+                 label='ROC curve of class {0} (area = {1:0.2f})'
+                       ''.format(class_name[i], roc_auc[i]))
+
+    # plt.plot([0, 1], [0, 1], 'k--', lw=2)
+    # plt.xlim([0.0, 1.0])
+    # plt.ylim([0.0, 1.05])
+    # plt.xlabel('False Positive Rate')
+    # plt.ylabel('True Positive Rate')
+    # plt.title('Some extension of Receiver operating characteristic to multi-class')
+    # plt.legend(loc="lower right")
+    # plt.show()
+    print(f'Macro AUC: {roc_auc["macro"]}')
+    return roc_auc["macro"]
+
+def calculate_stats_binary(soft_labels, true_labels, thresh=0.5):
+    '''
+
+    :param thresh:
+    :param pred_pth: path to numpy file
+    :param true_path: path to GT numpy file
+    :return: F1, PRcurve, Precison, Recall, Accuracy,
+    '''
 
     tumour_class = [x[1] for x in soft_labels]
 
@@ -153,7 +234,7 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
         return input
 
     # pred_labels = tumour_class.copy()
-    pred_labels = [thresh_fuc(i, opt_thresh) for i in tumour_class]
+    pred_labels = [thresh_fuc(i, thresh) for i in tumour_class]
 
     # pred_labels = np.argmax(soft_labels, axis=-1)
     # GT = test_generator.classes
@@ -217,18 +298,21 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
     step_kwargs = ({'step': 'post'}
                    if 'step' in signature(plt.fill_between).parameters
                    else {})
-    plt.step(recall, precision, color='b', alpha=0.2,
-             where='post')
-    plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
-
+    # plt.step(recall, precision, color='b', alpha=0.2,
+    #          where='post')
+    # plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
+    #
     # plt.xlabel('Recall')
     # plt.ylabel('Precision')
     # plt.ylim([0.0, 1.05])
     # plt.xlim([0.0, 1.0])
     # plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format(
-    # average_precision_score(true_labels, tumour_class)))
+    #     average_precision_score(true_labels, tumour_class)))
     # plt.show()
     Auc = roc_auc_score(true_labels, tumour_class)
+    # tumour_class[tumour_class>threshold] = 1
+    # tumour_class[tumour_class <= threshold] = 0
+
     F1 = f1_score(true_labels, pred_labels, pos_label=1)
     ACC = accuracy_score(true_labels, pred_labels)
     conf_matrix = confusion_matrix(true_labels, pred_labels)
@@ -236,12 +320,122 @@ def stats(soft_labels, true_labels, opt_thresh = 0.5):
     recall = recall_score(true_labels, pred_labels)
     print('f1 score is: {}'.format(F1))
     print('Accuracy score is: {}'.format(ACC))
+    print('MCC is {}:'.format(matthews_corrcoef(true_labels, pred_labels)))
     print('Auc is: {}'.format(Auc))
-    print(f'averag precision: {average_precision}')
+    print('Average precision is: {}'.format(average_precision_score(true_labels, tumour_class)))
     print('conf_matrix is: {}'.format(conf_matrix))
     print('Precision is {}'.format(precision))
     print('recall is {}'.format(recall))
-    return Auc
+    return AUC
+
+# def stats(soft_labels, true_labels, opt_thresh = 0.5):
+#     """
+#     prediction should be soft labels
+#
+#     :param pred:
+#     :param true:
+#     :return:
+#     """
+#
+#     tumour_class = [x[1] for x in soft_labels]
+#
+#     def thresh_fuc(input, thres_value):
+#         if input < thres_value:
+#             input = 0
+#         else:
+#             input = 1
+#         return input
+#
+#     # pred_labels = tumour_class.copy()
+#     pred_labels = [thresh_fuc(i, opt_thresh) for i in tumour_class]
+#
+#     # pred_labels = np.argmax(soft_labels, axis=-1)
+#     # GT = test_generator.classes
+#     # tumour_class=  np.array(tumour_class)
+#     # threshold = 0.5
+#     fpr, tpr, thresholds = roc_curve(true_labels, tumour_class, pos_label=1)
+#     # plt.figure(1)
+#     # plt.plot([0, 1], [0, 1], 'k--')
+#     # plt.plot(fpr, tpr, label='Tumor')
+#     # plt.xlabel('False positive rate')
+#     # plt.ylabel('True positive rate')
+#     # plt.title('ROC curve')
+#     # plt.legend(loc='best')
+#     # plt.show()
+#     # ---------------------------------------------
+#
+#     precision, recall, thresholds = precision_recall_curve(true_labels,
+#                                                            tumour_class)
+#     f1 = f11_score(precision, recall)
+#     nan_places = np.isnan(f1)
+#     f1[nan_places] = 0
+#
+#     print('max f1 score:{} optimal thresh: {}'.format(np.amax(f1), thresholds[np.where(f1 == np.amax(f1))]))
+#     average_precision = average_precision_score(true_labels, tumour_class)
+#
+#     plt.figure(figsize=(7, 8))
+#     f_scores = np.linspace(0.2, 0.9, num=5)
+#     lines = []
+#     labels = []
+#     for f_score in f_scores:
+#         x = np.linspace(0.01, 1)
+#         y = f_score * x / (2 * x - f_score)
+#         l, = plt.plot(x[y >= 0], y[y >= 0], color='gray', alpha=0.2)
+#         plt.annotate('f1={0:0.1f}'.format(f_score), xy=(0.9, y[45] + 0.02))
+#
+#     lines.append(l)
+#     labels.append('iso-f1 curves')
+#
+#     l, = plt.plot(recall, precision, color='turquoise', lw=2)
+#     lines.append(l)
+#     labels.append('Precision-recall for class Tumour (area = {:0.4f})'.format(average_precision))
+#
+#     l, = plt.plot(recall, f1, color='cornflowerblue', lw=2)
+#     lines.append(l)
+#     labels.append(
+#         'max f1 score:{:0.2f} optimal thresh: {:0.2f}'.format(np.amax(f1), thresholds[np.where(f1 == np.amax(f1))][0]))
+#
+#     # fig = plt.gcf()
+#     # fig.subplots_adjust(bottom=0.25)
+#     # plt.xlim([0.0, 1.0])
+#     # plt.ylim([0.0, 1.05])
+#     # plt.xlabel('Recall')
+#     # plt.ylabel('Precision')
+#     # plt.title('Precision-Recall curve')
+#     # plt.legend(lines, labels, loc=(0, -.38), prop=dict(size=14))
+#
+#     # ---------------------------------------------
+#     precision, recall, _ = precision_recall_curve(true_labels, tumour_class)
+#
+#     # In matplotlib < 1.5, plt.fill_between does not have a 'step' argument
+#     step_kwargs = ({'step': 'post'}
+#                    if 'step' in signature(plt.fill_between).parameters
+#                    else {})
+#     plt.step(recall, precision, color='b', alpha=0.2,
+#              where='post')
+#     plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
+#
+#     # plt.xlabel('Recall')
+#     # plt.ylabel('Precision')
+#     # plt.ylim([0.0, 1.05])
+#     # plt.xlim([0.0, 1.0])
+#     # plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format(
+#     # average_precision_score(true_labels, tumour_class)))
+#     # plt.show()
+#     Auc = roc_auc_score(true_labels, tumour_class)
+#     F1 = f1_score(true_labels, pred_labels, pos_label=1)
+#     ACC = accuracy_score(true_labels, pred_labels)
+#     conf_matrix = confusion_matrix(true_labels, pred_labels)
+#     precision = precision_score(true_labels, pred_labels)
+#     recall = recall_score(true_labels, pred_labels)
+#     print('f1 score is: {}'.format(F1))
+#     print('Accuracy score is: {}'.format(ACC))
+#     print('Auc is: {}'.format(Auc))
+#     print(f'averag precision: {average_precision}')
+#     print('conf_matrix is: {}'.format(conf_matrix))
+#     print('Precision is {}'.format(precision))
+#     print('recall is {}'.format(recall))
+#     return Auc
 
 def show_images(images, iter, cols=1, titles=None):
     """Display a list of images in a single figure with matplotlib.
@@ -271,6 +465,7 @@ def show_images(images, iter, cols=1, titles=None):
     plt.show()
     plt.savefig('../patches/'+str(iter)+'.png')
     # plt.close()
+
 def save_output_img(imgs,path, prefix, num):
     if not os.path.exists(path):
         os.mkdir(path)
