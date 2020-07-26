@@ -5,16 +5,19 @@ import logging
 import argparse
 import datetime
 import collections
+from itertools import cycle
 from torch.autograd import Function
 import random
 from skimage.io import imsave
 import numpy as np
 import random
-from sklearn.metrics import precision_recall_curve, precision_score, recall_score, \
-    f1_score, accuracy_score, roc_curve, average_precision_score, roc_auc_score, confusion_matrix
+from sklearn.metrics import precision_recall_curve, precision_score, recall_score, auc, \
+    f1_score, accuracy_score, roc_curve, average_precision_score, roc_auc_score, confusion_matrix,\
+    balanced_accuracy_score, matthews_corrcoef
 import matplotlib.pyplot as plt
 from inspect import signature
 from collections import OrderedDict
+from numpy import interp
 
 def get_args():
     argparser = argparse.ArgumentParser(description=__doc__)
@@ -133,6 +136,61 @@ def f11_score(precision, recall):
     f1 = 2 * np.divide(np.multiply(precision, recall), np.add(precision, recall))
     return f1
 
+def one_hot(arr, num_class):
+    """
+
+    :param arr:
+    :return:
+    """
+    a = np.array(arr)
+    # print(a.size)
+    # print(a.max())
+    # print(a.shape)
+    # b = np.zeros((a.size, int(a.max()) + 1))
+    # b[np.arange(a.size), a[0]] = 1
+
+    targets = np.array(a).reshape(-1)
+    one_hot_targets = np.eye(num_class)[targets.astype(int)]
+
+    return one_hot_targets
+
+def compute_accuracy(pred, true):
+    """
+
+    :param pred:
+    :param true:
+    :return:
+    """
+    # convert to array
+    pred = np.array(pred)
+    true = np.array(true)
+    if len(pred.shape) > 1:
+        pred = np.argmax(pred, axis=1)
+    if len(true.shape) > 1:
+        true = np.argmax(true, axis=1)
+
+    acc = accuracy_score(true, pred)
+    balanced_acc = balanced_accuracy_score(true, pred)
+    return acc, balanced_acc
+
+
+def compute_f1(pred, true):
+    """
+
+    :param pred:
+    :param true:
+    :return:
+    """
+    # convert to array
+    pred = np.array(pred)
+    true = np.array(true)
+    if len(pred.shape) > 1:
+        pred = np.argmax(pred, axis=1)
+    if len(true.shape) > 1:
+        true = np.argmax(true, axis=1)
+
+    f1 = f1_score(true, pred, average='macro')
+    return f1
 def calculate_stat(pred, true, num_class, class_name,  type = 'binary', thresh = 0.5):
     """
 
@@ -326,7 +384,7 @@ def calculate_stats_binary(soft_labels, true_labels, thresh=0.5):
     print('conf_matrix is: {}'.format(conf_matrix))
     print('Precision is {}'.format(precision))
     print('recall is {}'.format(recall))
-    return AUC
+    return Auc
 
 # def stats(soft_labels, true_labels, opt_thresh = 0.5):
 #     """

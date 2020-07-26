@@ -65,10 +65,9 @@ class AuxModel:
         if config.mode == 'train':
             # set up optimizer, lr scheduler and loss functions
             lr = config.lr
-            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
-            # self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9, weight_decay=config.weight_decay)
-            self.scheduler = LinearRampdown(self.optimizer, rampdown_from=1000, rampdown_till=1200)
-            # self.scheduler = MultiStepLR(self.optimizer, milestones=[50,100,150,300], gamma=0.1)
+            # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
+            self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9)
+            self.scheduler = MultiStepLR(self.optimizer, milestones=[100, 400], gamma=0.1)
             self.wandb.watch(self.model)
             self.start_iter = 0
 
@@ -92,12 +91,12 @@ class AuxModel:
         main_loss = AverageMeter()
         top1 = AverageMeter()
 
-        for it, src_batch in enumerate(src_loader):
+        for it, src_batch in enumerate(src_loader['main_task']):
             t = time.time()
             self.optimizer.zero_grad()
             src = src_batch
             src = to_device(src, self.device)
-            src_imgs, src_cls_lbls, _, _, _, _,_= src
+            src_imgs, src_cls_lbls = src
 
             self.optimizer.zero_grad()
 
@@ -143,7 +142,7 @@ class AuxModel:
         start_steps = epoch * len(src_loader['main_task'])
         total_steps = self.config.num_epochs * len(tar_loader['main_task'])
 
-        max_num_iter = len(src_loader['main_task'])
+        max_num_iter = max([len(src_loader[task_name]) for task_name in self.config.task_names])
         for it in range(max_num_iter):
             t = time.time()
 
@@ -252,8 +251,9 @@ class AuxModel:
                                                self.start_iter)
                         self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name],
                                                self.start_iter)
+                self.scheduler.step()
         self.wandb.log({"Train Loss": main_loss.avg})
-        self.scheduler.step()
+
 
         # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
         # del src_aux_logits, src_class_logits
@@ -380,9 +380,9 @@ class AuxModel:
             # np.save('pred_' + self.config.mode + '_main3.npy', soft_labels)
             # np.save('true_' + self.config.mode + '_main3.npy', true_labels)
         if self.config.dataset == 'oscc':
-            AUC = calculate_stat(soft_labels, true_labels, 2, class_name, type='binary', thresh=0.5)
+            AUC = calculate_stat(soft_labels, true_labels, 2, self.config.class_names, type='binary', thresh=0.5)
         if self.config.dataset == 'kather':
-            AUC = calculate_stat(soft_labels, true_labels, 9 ,self.config.class_names, class_name, type='multi', thresh=0.5)
+            AUC = calculate_stat(soft_labels, true_labels, 9, self.config.class_names, type='multi', thresh=0.5)
 
         # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total

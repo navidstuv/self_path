@@ -2,21 +2,21 @@ import os
 class DefaultConfigs(object):
 
     mode = 'train'
-    encoder_name = 'resnet50'
+    encoder_name = 'wide_resnet'
     pretrained = False
-    stain_normalized = True
+    stain_normalized = False
     augmentation = True
     training_num_print_epoch = 20
     save_output = True
     eval_batch_size = 128
     test_batch_size = 128
     random_seed = 33
-    num_epochs = 100
+    num_epochs = 300
     gpus = [0]
-    lr =  0.001
+    lr =  0.05
     weight_decay = 10e-3
-    src_batch_size = 64
-    tar_batch_size = 64
+    src_batch_size = 32
+    tar_batch_size = 32
     dataset = 'kather'
     # for resumin training
     training_resume = ''
@@ -96,6 +96,7 @@ class DefaultConfigs(object):
         test_data_path = '/media/navid/SeagateBackupPlusDrive/512all'
         pickle_path_test = './pickle_files/test_balanced.pickle'
         budget_test = 'test1'
-    testing_model ='./exp/_mai_aut0.01/best_model/model_best_acc.pth'
+        class_names = []
+    testing_model ='./exp/kather/_mai0.00125/best_model/model_best_acc.pth'
 
 config = DefaultConfigs()
