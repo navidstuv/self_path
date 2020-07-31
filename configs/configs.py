@@ -2,26 +2,26 @@ import os
 class DefaultConfigs(object):
 
     mode = 'train'
-    encoder_name = 'wide_resnet'
+    encoder_name = 'resnet50'
     pretrained = False
-    stain_normalized = False
+    stain_normalized = True
     augmentation = True
     training_num_print_epoch = 20
     save_output = True
     eval_batch_size = 128
     test_batch_size = 128
-    random_seed = 33
+    random_seed = 44
     num_epochs = 300
     gpus = [0]
-    lr =  0.05
-    weight_decay = 10e-3
+    lr =  0.005
+    # weight_decay = 10e-3
     src_batch_size = 32
     tar_batch_size = 32
     dataset = 'kather'
     # for resumin training
     training_resume = ''
 
-    task_names = ['main_task', 'jigsaw']#['main_task', 'magnification', 'jigsaw', 'domain_classifier', hematoxylin, 'rot']
+    task_names = ['main_task', 'hematoxylin']#['main_task', 'magnification', 'jigsaw', 'domain_classifier', hematoxylin, 'rot']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification_self', 'n_classes': 3},
              'main_task': {'type': 'classification_main', 'n_classes': 9},
@@ -37,7 +37,6 @@ class DefaultConfigs(object):
                    'flip': 1, 'rot':1, 'auto': 1}
 
     annotation_budget = 0.00125
-
     log_dir = './exp/' + dataset + '/'
     cache_dir = './exp/' + dataset + '/'
     model_dir = './exp/' + dataset + '/'
@@ -62,8 +61,8 @@ class DefaultConfigs(object):
         budget = 'training_kather2' + str(annotation_budget)
 
         base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/DATA/Kather/train'
-        pickle_path_unlabel = './pickle_files/training_kather.pickle'
-        budget_unlabel = 'training_kather1'
+        pickle_path_unlabel = './pickle_files/training_kather2.pickle'
+        budget_unlabel = 'training_kather21'
 
         val_data_path = '/media/navid/SeagateBackupPlusDrive/DATA/Kather/validation'
         pickle_path_valid = './pickle_files/validation_kather.pickle'
@@ -97,6 +96,30 @@ class DefaultConfigs(object):
         pickle_path_test = './pickle_files/test_balanced.pickle'
         budget_test = 'test1'
         class_names = []
-    testing_model ='./exp/kather/_mai0.00125/best_model/model_best_acc.pth'
+    if dataset == 'cam':
+        #source domain path
+        # base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
+        base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
+        pickle_path = 'pickle_files/training_cam_balanced.pickle'
+        budget = 'training_cam' + str(annotation_budget)
+
+        #target domain path
+        # base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
+        base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
+        pickle_path_unlabel= 'pickle_files/training_cam_balanced.pickle'
+        budget_unlabel = 'training_cam1'
+
+        # validation path
+        val_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
+        pickle_path_valid = './pickle_files/validation_cam_balanced.pickle'
+        budget_valid = 'validation_cam1'
+
+        # test path
+        # base_data_path_unlabel_new = 'G://test_camelyon'
+        test_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
+        pickle_path_test = './pickle_files/test_cam_balanced.pickle'
+        budget_test = 'test_cam1'
+        class_names = []
+    testing_model ='./exp/kather/_mai_hem0.00125/best_model/model_best_AUC.pth'
 
 config = DefaultConfigs()

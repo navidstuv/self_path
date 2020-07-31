@@ -67,7 +67,7 @@ class AuxModel:
             lr = config.lr
             # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
             self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9)
-            self.scheduler = MultiStepLR(self.optimizer, milestones=[100, 400], gamma=0.1)
+            self.scheduler = MultiStepLR(self.optimizer, milestones=[1000, 10000], gamma=0.1)
             self.wandb.watch(self.model)
             self.start_iter = 0
 
@@ -126,8 +126,9 @@ class AuxModel:
                                                      batch_time.avg))
                 self.writer.add_scalar('losses/all_loss', losses.avg, self.start_iter)
                 self.writer.add_scalar('losses/src_main_loss', src_main_loss, self.start_iter)
+            self.scheduler.step()
         self.wandb.log({"Train Loss": main_loss.avg})
-        self.scheduler.step()
+
 
         # del loss, src_class_loss, src_aux_loss, tar_aux_loss, tar_entropy_loss
         # del src_aux_logits, src_class_logits
@@ -142,8 +143,10 @@ class AuxModel:
         start_steps = epoch * len(src_loader['main_task'])
         total_steps = self.config.num_epochs * len(tar_loader['main_task'])
 
-        max_num_iter = max([len(src_loader[task_name]) for task_name in self.config.task_names])
-        for it in range(max_num_iter):
+        max_num_iter_src = max([len(src_loader[task_name]) for task_name in self.config.task_names])
+        max_num_iter_tar = max([len(tar_loader[task_name]) for task_name in self.config.task_names])
+        max_num_iter  =max([max_num_iter_src, max_num_iter_tar])
+        for it in range(max_num_iter_src):
             t = time.time()
 
             # this is based on DANN paper
@@ -251,7 +254,7 @@ class AuxModel:
                                                self.start_iter)
                         self.writer.add_scalar('losses/tar_aux_loss_' + task_name, tar_aux_loss[task_name],
                                                self.start_iter)
-                self.scheduler.step()
+            self.scheduler.step()
         self.wandb.log({"Train Loss": main_loss.avg})
 
 
@@ -335,7 +338,7 @@ class AuxModel:
         total = 0
         if self.config.dataset == 'kather':
             soft_labels = np.zeros((1, 9))
-        if self.config.dataset == 'oscc':
+        if self.config.dataset == 'oscc' or self.config.dataset == 'cam':
             soft_labels = np.zeros((1, 2))
         true_labels = []
         self.model.eval()

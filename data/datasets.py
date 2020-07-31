@@ -260,7 +260,7 @@ class Histodata_jigsaw(Dataset):
         return jig_img, jig_label
 
     def __len__(self):
-            return len(self.imgs)
+        return len(self.imgs)
 
 class Histodata_magnification(Dataset):
 
