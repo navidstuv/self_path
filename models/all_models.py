@@ -65,9 +65,9 @@ class AuxModel:
         if config.mode == 'train':
             # set up optimizer, lr scheduler and loss functions
             lr = config.lr
-            # self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
-            self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9)
-            self.scheduler = MultiStepLR(self.optimizer, milestones=[1000, 10000], gamma=0.1)
+            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
+            # self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9)
+            self.scheduler = MultiStepLR(self.optimizer, milestones=[50, 150], gamma=0.1)
             self.wandb.watch(self.model)
             self.start_iter = 0
 
@@ -126,7 +126,7 @@ class AuxModel:
                                                      batch_time.avg))
                 self.writer.add_scalar('losses/all_loss', losses.avg, self.start_iter)
                 self.writer.add_scalar('losses/src_main_loss', src_main_loss, self.start_iter)
-            self.scheduler.step()
+        self.scheduler.step()
         self.wandb.log({"Train Loss": main_loss.avg})
 
 
@@ -140,7 +140,7 @@ class AuxModel:
         losses = AverageMeter()
         main_loss = AverageMeter()
         top1 = AverageMeter()
-        start_steps = epoch * len(src_loader['main_task'])
+        start_steps = epoch * len(tar_loader['main_task'])
         total_steps = self.config.num_epochs * len(tar_loader['main_task'])
 
         max_num_iter_src = max([len(src_loader[task_name]) for task_name in self.config.task_names])
@@ -263,7 +263,7 @@ class AuxModel:
         # del tar_aux_logits, tar_class_logits
 
     def train(self, src_loader, tar_loader, val_loader, test_loader):
-        num_batches = len(src_loader)
+        num_batches = len(src_loader['main_task'])
         print_freq = max(num_batches // self.config.training_num_print_epoch, 1)
         start_epoch = self.start_iter // num_batches
         num_epochs = self.config.num_epochs
@@ -382,7 +382,7 @@ class AuxModel:
         soft_labels = soft_labels[1:, :]
             # np.save('pred_' + self.config.mode + '_main3.npy', soft_labels)
             # np.save('true_' + self.config.mode + '_main3.npy', true_labels)
-        if self.config.dataset == 'oscc':
+        if self.config.dataset == 'oscc' or self.config.dataset == 'cam':
             AUC = calculate_stat(soft_labels, true_labels, 2, self.config.class_names, type='binary', thresh=0.5)
         if self.config.dataset == 'kather':
             AUC = calculate_stat(soft_labels, true_labels, 9, self.config.class_names, type='multi', thresh=0.5)

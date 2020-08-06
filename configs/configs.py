@@ -13,18 +13,18 @@ class DefaultConfigs(object):
     random_seed = 44
     num_epochs = 300
     gpus = [0]
-    lr =  0.005
+    lr =  0.01
     # weight_decay = 10e-3
-    src_batch_size = 32
-    tar_batch_size = 32
-    dataset = 'kather'
+    src_batch_size = 64
+    tar_batch_size = 64
+    dataset = 'cam'
     # for resumin training
     training_resume = ''
 
-    task_names = ['main_task', 'hematoxylin']#['main_task', 'magnification', 'jigsaw', 'domain_classifier', hematoxylin, 'rot']
+    task_names = ['main_task']#['main_task', 'magnification', 'jigsaw', 'domain_classifier', hematoxylin, 'rot']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification_self', 'n_classes': 3},
-             'main_task': {'type': 'classification_main', 'n_classes': 9},
+             'main_task': {'type': 'classification_main', 'n_classes': 2},
              'jigsaw': {'type': 'classification_self', 'n_classes': 12},
              'domain_classifier': {'type': 'classification_adapt', 'n_classes': 2},
              'hematoxylin': {'type': 'pixel_self', 'n_classes': 1},
@@ -35,8 +35,7 @@ class DefaultConfigs(object):
     loss_weight = {'magnification': 1, 'domain_classifier': 1,
                    'main_task': 1, 'jigsaw': 1, 'hematoxylin': 1,
                    'flip': 1, 'rot':1, 'auto': 1}
-
-    annotation_budget = 0.00125
+    annotation_budget = 1
     log_dir = './exp/' + dataset + '/'
     cache_dir = './exp/' + dataset + '/'
     model_dir = './exp/' + dataset + '/'
