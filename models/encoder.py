@@ -31,7 +31,6 @@ def get_resnet(encoder_name, pretrained=True):
     model = torch.nn.Sequential(*children)
     return model, latent_dim
 
-
 class ResNet(nn.Module):
 
     def __init__(self, encoder_name, pretrained, detach=False):

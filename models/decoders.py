@@ -36,7 +36,7 @@ class PSPUpsample(nn.Module):
             nn.PReLU()
         )
 
-    def forward(self, x , upsample_ratio=2):
+    def forward(self, x, upsample_ratio=2):
         h, w = upsample_ratio * x.size(2), upsample_ratio * x.size(3)
         p = F.upsample(input=x, size=(h, w), mode='bilinear')
         return self.conv(p)
@@ -46,6 +46,7 @@ class PSPDecoder(nn.Module):
     """
     Decoder to predict mask given the features: it is based on PSP net paper
     """
+
     def __init__(self, n_classes=6, sizes=(1, 2, 3, 6), psp_size=2048):
         super(PSPDecoder, self).__init__()
         self.psp = PSPModule(psp_size, 1024, sizes)
@@ -68,10 +69,10 @@ class PSPDecoder(nn.Module):
 
         p = self.drop_2(p)
 
-        p = self.up_2(p ,upsample_ratio=4 )
+        p = self.up_2(p, upsample_ratio=4)
         p = self.drop_2(p)
 
-        p = self.up_3(p,upsample_ratio=4)
+        p = self.up_3(p, upsample_ratio=4)
         p = self.drop_2(p)
 
         return self.final(p)
@@ -140,32 +141,80 @@ class UnetDecoder(nn.Module):
 
         return out
 
+class UnetDecoder_wide(nn.Module):
+
+    def __init__(self, n_classes, multiple):
+        super(UnetDecoder, self).__init__()
+
+        self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+        self.conv_up0 = convrelu(128, 64, 3, 0)
+        self.conv_up1 = convrelu(64, 64, 3, 0)
+        self.conv_up2 = convrelu(64, 32, 3, 0)
+        self.conv_up3 = convrelu(32, 32, 3, 0)
+        self.conv_up4 = convrelu(32, 16, 3, 0)
+
+        self.conv_last = nn.Conv2d(16, n_classes, 1)
+
+    def forward(self, x):
+        x = self.conv_up0(x)
+        x = self.conv_up1(x)
+        x = self.upsample(x)
+        x = self.conv_up2(x)
+        x = self.conv_up3(x)
+        x = self.upsample(x)
+        x = self.conv_up4(x)
+        out = self.conv_last(x)
+
+        return out
 
 class Flatten(nn.Module):
     def forward(self, input):
         return input.view(input.size(0), -1)
 
-        
+
 class Classifier(nn.Module):
     def __init__(self, input_dim, n_classes):
         super(Classifier, self).__init__()
-        self.fc = nn.Sequential(
-            nn.Linear(input_dim , int(input_dim/2)),
-            nn.ReLU(inplace=True),
-            nn.Linear(int(input_dim/2), n_classes),
-        )
+        # self.fc = nn.Sequential(
+        #     nn.Linear(input_dim, int(input_dim / 2)),
+        #     nn.ReLU(inplace=True),
+        #     nn.Linear(int(input_dim / 2), n_classes),
+        # )
         self.fc = nn.Linear(int(input_dim), n_classes)
         self.maxpool = nn.AdaptiveMaxPool2d(1)
+
     def forward(self, x):
         x = self.maxpool(x)
         x = x.reshape(x.size(0), -1)
         x = self.fc(x)
         return x
 
+
+class Classifier_wide_resnet(nn.Module):
+    def __init__(self, input_dim, n_classes):
+        super(Classifier_wide_resnet, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(input_dim, int(input_dim / 2)),
+            nn.ReLU(inplace=True),
+            nn.Linear(int(input_dim / 2), n_classes),
+        )
+        self.fc = nn.Linear(int(input_dim), n_classes)
+        self.maxpool = nn.AdaptiveMaxPool2d(1)
+
+    def forward(self, x):
+        x = F.avg_pool2d(x, 8)
+        x = x.view(x.size(0), -1)
+        # x = self.maxpool(x)
+        # x = x.reshape(x.size(0), -1)
+        x = self.fc(x)
+        return x
+
+
 class Disc128_classifier(nn.Module):
     def __init__(self, input_dim, n_classes):
         super(Disc128_classifier, self).__init__()
         self.fc = weight_norm(nn.Linear(input_dim, n_classes))
+
     def forward(self, inter_layer, req_inter_layer=False):
         logits = self.fc(inter_layer)
         if req_inter_layer:

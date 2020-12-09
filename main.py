@@ -11,6 +11,7 @@ from data.data_loader import get_loaders
 import warnings
 import wandb
 warnings.filterwarnings("ignore")
+
 def main(wandb):
 
     # create the experiments dirs
@@ -18,7 +19,7 @@ def main(wandb):
                  config.log_dir , config.best_model_dir])
 
     # logging to the file and stdout
-    logger = get_logger(config.log_dir, config.exp_name)
+    logger = get_logger(config.log_dir, config.dataset)
 
     # fix random seed to reproduce results
     logger.info('Random seed: {:d}'.format(config.random_seed))
