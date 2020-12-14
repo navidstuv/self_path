@@ -30,7 +30,10 @@ def jigsaw_res(big_image):
     :param big_image: 128*128 image
     :return: jigmag image
     """
-
+    # Just to check if the main image is 1024 or not,
+    # for magnification task images of size 512x512 are extracted from WSIs
+    if big_image.shape[0]==1024:
+        big_image = center_crop(big_image, 512, 512)
     jig = np.zeros((128, 128, 3))
     img_40 = center_crop(big_image, 64, 64)
     img_20 = center_crop(big_image, 128, 128)
