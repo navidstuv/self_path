@@ -42,7 +42,7 @@ class Histodata(Dataset):
         self.augment = augment
         if config.stain_normalized:
             self.n = stainNorm_Reinhard.Normalizer()
-            i1 = cv2.imread('./data/source.png')
+            i1 = cv2.imread('source.png')
             i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
             self.n.fit(i1)
         normal_label = []
@@ -226,7 +226,7 @@ class Histodata_jigsaw(Dataset):
         self.augment = augment
         if config.stain_normalized:
             self.n = stainNorm_Reinhard.Normalizer()
-            i1 = cv2.imread('./data/source.png')
+            i1 = cv2.imread('source.png')
             i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
             self.n.fit(i1)
         label = []
@@ -628,10 +628,10 @@ if __name__=='__main__':
 
     def worker_init_fn(worker_id):
         np.random.seed(np.random.get_state()[1][0] + worker_id)
-    lab_train_generator = Histodata(config.base_data_path_unlabel, '../pickle_files/training.pickle', 'training1', unlabeled=False , augment = False)
-    unlab_train_generator = Histodata_unlabel_domain_adopt(config.base_data_path_unlabel, '../pickle_files/training.pickle',
-                                                           config.budget_unlabel, unlabeled = True, augment= False)
-    src_loader = DataLoader(lab_train_generator, batch_size=10, shuffle=True, num_workers=5,
+    lab_train_generator = Histodata_jigsaw(config.base_data_path_unlabel, '../pickle_files/training_cam_balanced.pickle', 'training_cam1' , augment = False)
+    # unlab_train_generator = Histodata_unlabel_domain_adopt(config.base_data_path_unlabel, '../pickle_files/training.pickle',
+    #                                                        config.budget_unlabel, unlabeled = True, augment= False)
+    src_loader = DataLoader(lab_train_generator, batch_size=10, shuffle=True, num_workers=0,
                             pin_memory=True, worker_init_fn=worker_init_fn)
     for it, src in enumerate(src_loader):
         img,lbl,_,_, aux_img,aux_lbs = src

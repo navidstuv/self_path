@@ -21,7 +21,7 @@ class DefaultConfigs(object):
     # for resumin training
     training_resume = ''
 
-    task_names = ['main_task']#['main_task', 'magnification', 'jigsaw', 'domain_classifier', hematoxylin, 'rot']
+    task_names = ['main_task', 'jigsaw']#['main_task', 'magnification', 'jigsaw', 'domain_classifier', hematoxylin, 'rot']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification_self', 'n_classes': 3},
              'main_task': {'type': 'classification_main', 'n_classes': 2},
@@ -55,7 +55,7 @@ class DefaultConfigs(object):
 
     if dataset == 'kather':
 
-        base_data_path = '/media/navid/SeagateBackupPlusDrive/DATA/Kather/train'
+        base_data_path = 'G:/DATA/Kather/train'
         pickle_path = './pickle_files/training_kather2.pickle'
         budget = 'training_kather2' + str(annotation_budget)
 
@@ -98,18 +98,18 @@ class DefaultConfigs(object):
     if dataset == 'cam':
         #source domain path
         # base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
-        base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
+        base_data_path = 'G:/512allcamelyon'
         pickle_path = 'pickle_files/training_cam_balanced.pickle'
         budget = 'training_cam' + str(annotation_budget)
 
         #target domain path
         # base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512all'
-        base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
+        base_data_path_unlabel = 'G://512allcamelyon'
         pickle_path_unlabel= 'pickle_files/training_cam_balanced.pickle'
         budget_unlabel = 'training_cam1'
 
         # validation path
-        val_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
+        val_data_path = 'G:/512allcamelyon'
         pickle_path_valid = './pickle_files/validation_cam_balanced.pickle'
         budget_valid = 'validation_cam1'
 

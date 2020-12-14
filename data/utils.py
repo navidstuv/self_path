@@ -27,8 +27,8 @@ def get_center_crop_coords(height, width, crop_height, crop_width):
 def jigsaw_res(big_image):
     """
 
-    :param big_image:
-    :return:
+    :param big_image: 128*128 image
+    :return: jigmag image
     """
 
     jig = np.zeros((128, 128, 3))
@@ -39,8 +39,8 @@ def jigsaw_res(big_image):
     img_10 = cv2.resize(img_10, (64, 64), interpolation=cv2.INTER_CUBIC)
     img_5 = cv2.resize(big_image, (64, 64))
     list_imgs = [img_5, img_10, img_20, img_40]
-    all_possible_permutations = list(itertool.permutations(list_imgs))
-    order = random.sample(list(range(23)), 1)
+    all_possible_permutations = list(itertools.permutations(list_imgs))
+    order = random.sample(list(range(23)), 1)[0]
     jig[:64, :64, :] = all_possible_permutations[order][0]
     jig[64:, 64:, :] = all_possible_permutations[order][1]
     jig[:64, 64:, :] = all_possible_permutations[order][2]
