@@ -27,3 +27,7 @@ __pycache__/
 .idea/misc.xml
 .idea/Multi_task_domain_adapt.iml
 .idea/workspace.xml
+*.yaml
+*.log
+*.jsonl
+*.json

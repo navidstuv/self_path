@@ -1,22 +1,18 @@
 import os
 import time
-import itertools
 import numpy as np
-from PIL import Image
 from tqdm import tqdm
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
-from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR
+from torch.optim.lr_scheduler import MultiStepLR
 from utils.utils import calculate_stat
 
 # custom modules
-from schedulers import get_scheduler
 from models.model import get_model
 from utils.metrics import AverageMeter, accuracy
-from utils.utils import to_device, make_inf_dl, save_output_img
+from utils.utils import to_device
 
 # summary
 from tensorboardX import SummaryWriter
@@ -24,24 +20,6 @@ from tensorboardX import SummaryWriter
 def get_lr(optimizer):
     for param_group in optimizer.param_groups:
         return param_group['lr']
-
-class LinearRampdown(_LRScheduler):
-    def __init__(self, opt, rampdown_from=1000, rampdown_till=1200, last_epoch=-1):
-        self.rampdown_from = rampdown_from
-        self.rampdown_till = rampdown_till
-        super(LinearRampdown, self).__init__(opt, last_epoch)
-
-    def ramp(self, e):
-        if e > self.rampdown_from:
-            f = (e - self.rampdown_from) / (self.rampdown_till - self.rampdown_from)
-            return 1 - f
-        else:
-            return 1.0
-
-    def get_lr(self):
-        factor = self.ramp(self.last_epoch)
-        return [base_lr * factor for base_lr in self.base_lrs]
-
 
 class AuxModel:
 
@@ -66,7 +44,6 @@ class AuxModel:
             # set up optimizer, lr scheduler and loss functions
             lr = config.lr
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, betas=(.5, .999))
-            # self.optimizer =torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9)
             self.scheduler = MultiStepLR(self.optimizer, milestones=[50, 150], gamma=0.1)
             self.wandb.watch(self.model)
             self.start_iter = 0
@@ -97,9 +74,7 @@ class AuxModel:
             src = src_batch
             src = to_device(src, self.device)
             src_imgs, src_cls_lbls = src
-
             self.optimizer.zero_grad()
-
             src_main_logits = self.model(src_imgs, 'main_task')
             src_main_loss = self.class_loss_func(src_main_logits, src_cls_lbls)
             loss = src_main_loss * self.config.loss_weight['main_task']
@@ -144,8 +119,6 @@ class AuxModel:
         total_steps = self.config.num_epochs * len(tar_loader['main_task'])
 
         max_num_iter_src = max([len(src_loader[task_name]) for task_name in self.config.task_names])
-        max_num_iter_tar = max([len(tar_loader[task_name]) for task_name in self.config.task_names])
-        max_num_iter  =max([max_num_iter_src, max_num_iter_tar])
         for it in range(max_num_iter_src):
             t = time.time()
 
@@ -360,19 +333,11 @@ class AuxModel:
                     pred_trh[pred_trh >= 0.5] = 1
                     pred_trh[pred_trh < 0.5] = 0
                     compare = cls_lbls.cpu().numpy() - pred_trh
-                    FP_idx = np.where(compare == -1)
-                    FN_idx = np.where(compare == 1)
-                    # FP_imgs = imgs.cpu().numpy()[FP_idx, ...]
-                    # FN_imgs = imgs.cpu().numpy()[FN_idx, ...]
-                    # save_output_img(FP_imgs[0, ...], 'FP_images', 'FP', kk * imgs.shape[0])
-                    # save_output_img(FN_imgs[0, ...], 'FN_images', 'FN', kk * imgs.shape[0])
-                    kk += 1
 
+                    kk += 1
                 _, cls_pred = logits.max(dim=1)
-                # _, aux_pred = aux_logits.max(dim=1)
 
                 class_correct += torch.sum(cls_pred == cls_lbls)
-                # aux_correct += torch.sum(aux_pred == aux_lbls.data)
                 total += imgs.size(0)
 
             tt.close()
@@ -380,14 +345,10 @@ class AuxModel:
             "Test Loss": loss.avg})
         # if self.config.save_output == True:
         soft_labels = soft_labels[1:, :]
-            # np.save('pred_' + self.config.mode + '_main3.npy', soft_labels)
-            # np.save('true_' + self.config.mode + '_main3.npy', true_labels)
         if self.config.dataset == 'oscc' or self.config.dataset == 'cam':
             AUC = calculate_stat(soft_labels, true_labels, 2, self.config.class_names, type='binary', thresh=0.5)
         if self.config.dataset == 'kather':
             AUC = calculate_stat(soft_labels, true_labels, 9, self.config.class_names, type='multi', thresh=0.5)
-
-        # aux_acc = 100 * float(aux_correct) / total
         class_acc = 100 * float(class_correct) / total
         self.logger.info('class_acc: {:.2f} %'.format(class_acc))
         self.wandb.log({

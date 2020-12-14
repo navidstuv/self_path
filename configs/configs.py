@@ -6,26 +6,27 @@ class DefaultConfigs(object):
     pretrained = False
     stain_normalized = True
     augmentation = True
-    training_num_print_epoch = 20
+    training_num_print_epoch = 1000
     save_output = True
     eval_batch_size = 128
     test_batch_size = 128
     random_seed = 44
     num_epochs = 300
     gpus = [0]
-    lr =  0.01
+    lr =  0.001
     # weight_decay = 10e-3
     src_batch_size = 64
     tar_batch_size = 64
     dataset = 'cam'
-    # for resumin training
+
+    # for resuming training
     training_resume = ''
 
     task_names = ['main_task', 'jigsaw']#['main_task', 'magnification', 'jigsaw', 'domain_classifier', hematoxylin, 'rot']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification_self', 'n_classes': 3},
              'main_task': {'type': 'classification_main', 'n_classes': 2},
-             'jigsaw': {'type': 'classification_self', 'n_classes': 12},
+             'jigsaw': {'type': 'classification_self', 'n_classes': 24},
              'domain_classifier': {'type': 'classification_adapt', 'n_classes': 2},
              'hematoxylin': {'type': 'pixel_self', 'n_classes': 1},
              'flip': {'type': 'classification_self', 'n_classes': 2},
@@ -95,6 +96,7 @@ class DefaultConfigs(object):
         pickle_path_test = './pickle_files/test_balanced.pickle'
         budget_test = 'test1'
         class_names = []
+
     if dataset == 'cam':
         #source domain path
         # base_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
@@ -115,10 +117,11 @@ class DefaultConfigs(object):
 
         # test path
         # base_data_path_unlabel_new = 'G://test_camelyon'
-        test_data_path = '/media/navid/SeagateBackupPlusDrive/512allcamelyon'
+        test_data_path = 'G:/512allcamelyon'
         pickle_path_test = './pickle_files/test_cam_balanced.pickle'
         budget_test = 'test_cam1'
         class_names = []
+
     testing_model ='./exp/kather/_mai_hem0.00125/best_model/model_best_AUC.pth'
 
 config = DefaultConfigs()

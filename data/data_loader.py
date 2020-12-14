@@ -43,9 +43,9 @@ def get_loaders(config):
 
     valid_generator = Histodata_main(config.val_data_path, config.pickle_path_valid, config.budget_valid)
     test_generator = Histodata_main(config.test_data_path, config.pickle_path_test, config.budget_test)
-    val_loader = DataLoader(valid_generator, batch_size=config.eval_batch_size, shuffle=False, num_workers=5,
+    val_loader = DataLoader(valid_generator, batch_size=config.eval_batch_size, shuffle=False, num_workers=0,
                             pin_memory=True)
-    test_loader = DataLoader(test_generator, batch_size=config.test_batch_size, shuffle=False, num_workers=5,
+    test_loader = DataLoader(test_generator, batch_size=config.test_batch_size, shuffle=False, num_workers=0,
                              pin_memory=True)
 
     return src_loader, tar_loader, val_loader, test_loader
