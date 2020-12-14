@@ -1,12 +1,9 @@
 import random
-from typing import List, Tuple
-
 import albumentations as A
 import cv2
-import numpy as np
-from albumentations.augmentations.functional import brightness_contrast_adjust, elastic_transform
+from albumentations.augmentations.functional import brightness_contrast_adjust
 from albumentations.pytorch import ToTensor
-from albumentations.augmentations.transforms import Resize,CenterCrop
+from albumentations.augmentations.transforms import CenterCrop
 class IndependentRandomBrightnessContrast(A.ImageOnlyTransform):
     """ Change brightness & contrast independently per channels """
 
@@ -204,50 +201,4 @@ def get_hard_augmentations_v2(image_size):
             A.RandomRotate90(),
             A.Transpose()
         ])
-    ])
-
-def get_none_augmentations(image_size):
-    return A.NoOp()
-
-def get_train_transform(image_size, augmentation=None):
-    if augmentation is None:
-        augmentation = 'none'
-
-    LEVELS = {
-        'none': get_none_augmentations,
-        'light': get_light_augmentations,
-        'medium': get_medium_augmentations,
-        'hard': get_hard_augmentations,
-        'hard2': get_hard_augmentations_v2
-    }
-
-    assert augmentation in LEVELS.keys()
-    augmentation = LEVELS[augmentation](image_size)
-
-    longest_size = max(image_size[0], image_size[1])
-    return A.Compose([
-        #Resize(int(config.img_height*1.5),int(config.img_weight*1.5)),
-        CenterCrop(config.img_height,config.img_weight),
-        A.LongestMaxSize(longest_size, interpolation=cv2.INTER_CUBIC),
-
-        A.PadIfNeeded(image_size[0], image_size[1],
-                      border_mode=cv2.BORDER_CONSTANT, value=0),
-        augmentation,
-        A.Normalize(),
-        ToTensor()
-    ])
-
-
-def get_test_transform(image_size):
-    longest_size = max(image_size[0], image_size[1])
-    return A.Compose([
-        #Resize(int(config.img_height*1.5),int(config.img_weight*1.5)),
-        CenterCrop(config.img_height,config.img_weight),
-        A.LongestMaxSize(longest_size, interpolation=cv2.INTER_CUBIC),
-
-        A.PadIfNeeded(image_size[0], image_size[1],
-                      border_mode=cv2.BORDER_CONSTANT, value=0),
-
-        A.Normalize(),
-        ToTensor()
     ])

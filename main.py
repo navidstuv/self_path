@@ -26,11 +26,7 @@ def main(wandb):
 
     # model = get_model(config)
     model = AuxModel(config, logger, wandb)
-
-
     src_loader, tar_loader, val_loader, test_loader  = get_loaders(config)
-
-
     if config.mode == 'train':
         model.train(src_loader, tar_loader, val_loader, None)
     elif config.mode == 'val':
