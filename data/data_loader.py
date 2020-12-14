@@ -1,4 +1,4 @@
-from data.datasets import Histodata, Histodata_unlabel_domain_adopt, Histodata_main, Histodata_jigsaw,\
+from data.datasets import Histodata_main, Histodata_jigsaw,\
     Histodata_magnification, Histodata_hematoxylin, Histodata_auto, Histodata_flip, Histodata_rot
 
 from torch.utils.data import DataLoader

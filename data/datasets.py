@@ -2,9 +2,7 @@ import numpy as np
 import torch
 from configs.configs import config
 from torch.utils.data import Dataset
-from tqdm import tqdm
 from data.utils import center_crop, jigsaw_res
-from skimage.color import rgb2hed, gray2rgb
 import matplotlib.pyplot as plt
 from data import stainNorm_Reinhard
 from skimage.color import rgb2hed
@@ -12,7 +10,6 @@ from skimage.exposure import rescale_intensity
 import imutils
 import random
 
-from albumentations.augmentations.transforms import CenterCrop
 import os
 import pickle
 import cv2
@@ -23,7 +20,7 @@ class Unlabeller():
 def preprocess_input(x):
     x /= 255
     return x
-# TO DO: Separate dataloader for each task
+
 def preprocess_input_stain(x, maxx = 1, minn = -1):
     if np.amax(x)==0 and np.amin(x)==0 or (np.amax(x)-np.amin(x))==0:
         std=np.zeros_like(x)
@@ -195,9 +192,8 @@ class Histodata_magnification(Dataset):
         img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
         if config.stain_normalized:
             img = self.n.transform(img)
-
         # resize image
-        mag = np.random.choice(['40x', '20x', '10x'], 1)
+        mag = np.random.choice(['40x', '20x', '10x', '5x'], 1)
         if mag=='40x':
             aux_image_mag = center_crop(img, 128, 128)
             aux_label_mag = 0
@@ -206,6 +202,9 @@ class Histodata_magnification(Dataset):
             aux_image_mag = cv2.resize(aux_image_mag, (128, 128), interpolation=cv2.INTER_AREA)
             aux_label_mag = 1
         if mag=='10x':
+            aux_image_mag = cv2.resize(center_crop(img, 512, 512), (128, 128) , interpolation=cv2.INTER_AREA)
+            aux_label_mag = 2
+        if mag=='5x':
             aux_image_mag = cv2.resize(img, (128, 128), interpolation=cv2.INTER_AREA)
             aux_label_mag = 2
         aux_image_mag = preprocess_input(aux_image_mag.astype(np.float32))

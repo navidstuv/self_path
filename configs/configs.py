@@ -22,7 +22,7 @@ class DefaultConfigs(object):
     # for resuming training
     training_resume = ''
 
-    task_names = ['main_task', 'jigsaw']#['main_task', 'magnification', 'jigsaw', 'domain_classifier', hematoxylin, 'rot']
+    task_names = ['main_task', 'magnification']#['main_task', 'magnification', 'jigsaw', 'domain_classifier', hematoxylin, 'rot']
     aux_task_names =task_names[1:]
     tasks = {'magnification': {'type': 'classification_self', 'n_classes': 3},
              'main_task': {'type': 'classification_main', 'n_classes': 2},

@@ -31,3 +31,10 @@ __pycache__/
 *.log
 *.jsonl
 *.json
+*.iml
+*.iml
+.idea/workspace.xml
+.idea/Multi_task_domain_adapt.iml
+.idea/misc.xml
+exp/cam/_mai_mag1/logs/events.out.tfevents.1607980602.WINDOWS-CTP81D9
+.idea/misc.xml
