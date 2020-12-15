@@ -2,6 +2,9 @@ import os
 class DefaultConfigs(object):
 
     mode = 'train'
+
+    # path to chechpoint for test
+    testing_model = './exp/kather/_mai_hem0.00125/best_model/model_best_AUC.pth'
     encoder_name = 'resnet50'
     pretrained = False
     stain_normalized = True
@@ -24,7 +27,7 @@ class DefaultConfigs(object):
 
     task_names = ['main_task', 'magnification']#['main_task', 'magnification', 'jigsaw', 'domain_classifier', hematoxylin, 'rot']
     aux_task_names =task_names[1:]
-    tasks = {'magnification': {'type': 'classification_self', 'n_classes': 3},
+    tasks = {'magnification': {'type': 'classification_self', 'n_classes': 4},
              'main_task': {'type': 'classification_main', 'n_classes': 2},
              'jigsaw': {'type': 'classification_self', 'n_classes': 24},
              'domain_classifier': {'type': 'classification_adapt', 'n_classes': 2},
@@ -36,6 +39,8 @@ class DefaultConfigs(object):
     loss_weight = {'magnification': 1, 'domain_classifier': 1,
                    'main_task': 1, 'jigsaw': 1, 'hematoxylin': 1,
                    'flip': 1, 'rot':1, 'auto': 1}
+
+    # set directories for saving logs, checkpoints, etc...
     annotation_budget = 1
     log_dir = './exp/' + dataset + '/'
     cache_dir = './exp/' + dataset + '/'
@@ -52,10 +57,7 @@ class DefaultConfigs(object):
     best_model_dir = best_model_dir + str(annotation_budget)+'/best_model'
 
 
-
-
     if dataset == 'kather':
-
         base_data_path = 'G:/DATA/Kather/train'
         pickle_path = './pickle_files/training_kather2.pickle'
         budget = 'training_kather2' + str(annotation_budget)
@@ -121,7 +123,5 @@ class DefaultConfigs(object):
         pickle_path_test = './pickle_files/test_cam_balanced.pickle'
         budget_test = 'test_cam1'
         class_names = []
-
-    testing_model ='./exp/kather/_mai_hem0.00125/best_model/model_best_AUC.pth'
 
 config = DefaultConfigs()
