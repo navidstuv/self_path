@@ -62,7 +62,7 @@ class DefaultConfigs(object):
 
         base_data_path_unlabel = '/media/navid/SeagateBackupPlusDrive/DATA/Kather/train'
         pickle_path_unlabel = './pickle_files/training_kather2.pickle'
-        budget_unlabel = 'training_kather21'
+        budget_unlabel = 'training_kather1'
 
         val_data_path = '/media/navid/SeagateBackupPlusDrive/DATA/Kather/validation'
         pickle_path_valid = './pickle_files/validation_kather.pickle'
