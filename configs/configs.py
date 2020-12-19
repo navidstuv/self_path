@@ -1,7 +1,7 @@
 import os
 class DefaultConfigs(object):
 
-    mode = 'train'
+    mode = 'train' # train/test
 
     # path to chechpoint for test
     testing_model = './exp/kather/_mai_hem0.00125/best_model/model_best_AUC.pth'
