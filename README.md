@@ -1,5 +1,5 @@
 # Self Path: Self Supervision for Classification of Histology Images with Limited Budget of Annotation
-This is implementation of our paper [link](https://arxiv.org/pdf/2008.05571.pdf).
+This is PyTorch implementation of our paper [link](https://arxiv.org/pdf/2008.05571.pdf).
 
 ## Sorting Dataset
 For our experiment, we save all datasets in one folder, and then we created pickle file based on the image names and the budget of annotations: For example
