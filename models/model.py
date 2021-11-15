@@ -5,7 +5,6 @@ import torch.nn as nn
 from .encoder import get_resnet, ResNet
 from .decoders import  UnetDecoder, Classifier, Disc128_classifier, Classifier_wide_resnet
 from torch import optim
-from .wide_resnet import Wide_ResNet
 from utils.utils import ReverseLayerF
 
 

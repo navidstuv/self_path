@@ -143,11 +143,6 @@ def one_hot(arr, num_class):
     :return:
     """
     a = np.array(arr)
-    # print(a.size)
-    # print(a.max())
-    # print(a.shape)
-    # b = np.zeros((a.size, int(a.max()) + 1))
-    # b[np.arange(a.size), a[0]] = 1
 
     targets = np.array(a).reshape(-1)
     one_hot_targets = np.eye(num_class)[targets.astype(int)]

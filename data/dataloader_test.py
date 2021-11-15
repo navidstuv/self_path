@@ -8,7 +8,6 @@ import random
 import numpy as np
 import pandas as pd
 import os
-from test_wsi import WSIHandler
 import cv2
 import torch
 import openslide as op
@@ -26,48 +25,6 @@ def preprocess_input(x):
     x /= 127
     return x - 1
 
-
-# 2.define dataset
-class Histodata_wsi(Dataset):
-    def __init__(self, wsi_path, polygon_path,  augment=False):
-        self.augment = augment
-        self.wsi_path = wsi_path
-        self.downsampling_factor = 1 / 8
-        handler = WSIHandler(wsi_path, polygon_path, self.downsampling_factor)
-        # self.wsi = handler.wsi
-        mask = handler.poly2mask_func('Tissue region')
-        self.all_coords = handler.patch_coordinate_extractor(mask, 512, 25 / 100, 95 / 100)
-        self.wsi = op.open_slide(self.wsi_path)
-
-    def __getitem__(self, index):
-        coor = self.all_coords[index]
-
-        img = self.wsi.read_region((int(coor[1] / self.downsampling_factor), int(coor[0] / self.downsampling_factor)),
-                              level=0, size=(512, 512))
-        img = np.array(img)[:,:,:3]
-
-        # resize image
-        width = int(img.shape[1] * 25 / 100)
-        height = int(img.shape[0] * 25 / 100)
-        dim = (width, height)
-        img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
-
-        # img = cv2.resize(img, (int(config.img_height // 2), int(config.img_width // 2)))
-        # img = cv2.resize(img,(int(config.img_height*1.5),int(config.img_weight*1.5)))
-        # img = get_test_transform(img.shape)(image=img)["image"]
-        # img =  np.transpose(img, (2, 0, 1))
-        if self.augment:
-            img = self.augment(img.shape)(image=img)
-            img = img['image']
-        img = preprocess_input(img.astype(np.float32))
-        img = torch.from_numpy(img).float()
-        img = img.permute(2, 0, 1)
-        return img, [coor]
-
-    def __len__(self):
-        return len(self.all_coords)
-
-
 def collate_fn(batch):
     imgs = []
     label = []
@@ -76,7 +33,6 @@ def collate_fn(batch):
         label.append(sample[1])
 
     return torch.stack(imgs, 0), label
-
 
 def get_files(root, mode):
     # for test
