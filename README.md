@@ -27,7 +27,7 @@ torchvision==0.8.2`
 
 ## Usage
 - All directories for the input data and also hyperparameters can be set in "config.py"
-    - 'budget' in cinfig file indicates the budget of annotation according to the dictionary mentioned above.
+    - 'budget' in config file indicates the budget of annotation according to the dictionary mentioned above.
     - tasks in config are set by defining following list/dictionaries:    
     
     ```task_names = ['main_task', 'magnification']#['main_task', 'magnification', 'jigsaw', 'domain_classifier', hematoxylin, 'rot']'
